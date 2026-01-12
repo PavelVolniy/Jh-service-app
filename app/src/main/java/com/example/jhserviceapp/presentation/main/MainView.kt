@@ -7,6 +7,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -17,8 +18,11 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -29,9 +33,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
+import com.example.jhserviceapp.domain.entity.Report
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 
@@ -76,81 +82,112 @@ private fun PreviewMainView() {
 @Composable
 fun MainView(
     onFilteredTextChanged: (text: String) -> Unit = {},
+    listReport: List<ReportWithArticleAndCount> = emptyList(),
     onClickAdd: () -> Unit = {},
-    listReport: List<ReportWithArticleAndCount> = emptyList()
+    onClickSettings: () -> Unit = {},
+    onClickShare: (report: ReportWithArticleAndCount) -> Unit = {}
 ) {
     var filterText by remember { mutableStateOf("") }
+    Scaffold(
+        topBar = {
+            Surface(color = colorResource(R.color.jhGrayLight)) {
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(dimensionResource(R.dimen.default_padding)),
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Text(
+                        text = stringResource(R.string.app_name),
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    IconButton(onClick = { onClickSettings() }) {
+                        Icon(
+                            painter = painterResource(R.drawable.ic_settings),
+                            contentDescription = null,
+                            tint = colorResource(R.color.jhGrayDark)
+                        )
+                    }
 
-    Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = colorResource(R.color.jhYellow)
+                }
+            }
+        }
     ) {
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(dimensionResource(R.dimen.default_padding)),
+                .padding(it),
+            color = colorResource(R.color.jhYellow)
         ) {
-            Column(
+            Box(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .align(Alignment.TopCenter),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                    .fillMaxSize()
+                    .padding(dimensionResource(R.dimen.default_padding)),
             ) {
-                OutlinedTextField(
-                    leadingIcon = {
-                        Icon(
-                            painter = painterResource(R.drawable.ic_filter),
-                            contentDescription = null
-                        )
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    value = filterText,
-                    onValueChange = {
-                        filterText = it
-                        onFilteredTextChanged(it)
-                    },
-                    trailingIcon = {
-                        if (filterText.isNotEmpty())
-                            Icon(
-                                modifier = Modifier.clickable {
-                                    filterText = ""
-                                },
-                                imageVector = Icons.Default.Close,
-                                contentDescription = null,
-                            )
-                    }
-                )
-
-                LazyColumn(
-                    modifier = Modifier.fillMaxWidth(),
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .align(Alignment.TopCenter),
                     horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(5.dp)
+                    verticalArrangement = Arrangement.spacedBy(20.dp)
                 ) {
-                    items(listReport) { item ->
-                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                    OutlinedTextField(
+                        leadingIcon = {
+                            Icon(
+                                painter = painterResource(R.drawable.ic_filter),
+                                contentDescription = null
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        value = filterText,
+                        onValueChange = {
+                            filterText = it
+                            onFilteredTextChanged(it)
+                        },
+                        trailingIcon = {
+                            if (filterText.isNotEmpty())
+                                Icon(
+                                    modifier = Modifier.clickable {
+                                        filterText = ""
+                                    },
+                                    imageVector = Icons.Default.Close,
+                                    contentDescription = null,
+                                )
+                        }
+                    )
 
-                            SwipeableItem(onSwipeToDelete = {}) {
-                                ReportItemRowView(report = item.report)
+                    LazyColumn(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(5.dp)
+                    ) {
+                        items(listReport) { item ->
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+
+                                SwipeableItem(onSwipeToDelete = {}) {
+                                    ReportItemRowView(report = item.report,
+                                        onClickShare = { onClickShare(item) })
+                                }
                             }
                         }
                     }
                 }
-            }
-            IconButton(
-                modifier = Modifier.align(Alignment.BottomEnd),
-                onClick = onClickAdd
-            ) {
-                Surface(
-                    shape = RoundedCornerShape(10.dp),
-                    color = colorResource(R.color.jhYellow),
-                    border = BorderStroke(2.dp, color = colorResource(R.color.jhTextColorBlack))
+                IconButton(
+                    modifier = Modifier.align(Alignment.BottomEnd),
+                    onClick = onClickAdd
                 ) {
-                    Icon(
-                        modifier = Modifier.padding(5.dp),
-                        painter = painterResource(R.drawable.ic_plus_square),
-                        contentDescription = null
-                    )
+                    Surface(
+                        shape = RoundedCornerShape(10.dp),
+                        color = colorResource(R.color.jhYellow),
+                        border = BorderStroke(2.dp, color = colorResource(R.color.jhTextColorBlack))
+                    ) {
+                        Icon(
+                            modifier = Modifier.padding(5.dp),
+                            painter = painterResource(R.drawable.ic_plus_square),
+                            contentDescription = null
+                        )
+                    }
                 }
             }
         }
