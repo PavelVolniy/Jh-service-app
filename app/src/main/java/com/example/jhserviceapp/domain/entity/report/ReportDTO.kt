@@ -29,7 +29,4 @@ data class ReportDTO(
     override val typeOfOperations: String,
     @ColumnInfo("internalComments")
     override val internalComments: String
-) : Report {
-
-
-}
+) : Report

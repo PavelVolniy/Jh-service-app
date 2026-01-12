@@ -14,12 +14,11 @@ import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Toast
-import androidx.core.widget.addTextChangedListener
+import androidx.compose.runtime.collectAsState
+import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.ItemTouchHelper
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.example.jhserviceapp.App
 import com.example.jhserviceapp.R
@@ -27,9 +26,6 @@ import com.example.jhserviceapp.databinding.MainFragmentBinding
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.adapters.ReportAdapter
 import com.example.jhserviceapp.presentation.util.FormatDateUtil
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainFragment : Fragment() {
@@ -59,12 +55,20 @@ class MainFragment : Fragment() {
     override fun onCreateView(
         inflater: LayoutInflater, container: ViewGroup?, savedInstanceState: Bundle?
     ): View {
-        _binding = MainFragmentBinding.inflate(layoutInflater)
-        binding.reportRecyclerView.adapter = adapter
-        binding.reportRecyclerView.layoutManager = LinearLayoutManager(requireContext())
-        setupSwipeListener(binding.reportRecyclerView)
-        setHasOptionsMenu(true)
-        return binding.root
+//        _binding = MainFragmentBinding.inflate(layoutInflater)
+//        binding.reportRecyclerView.adapter = adapter
+//        binding.reportRecyclerView.layoutManager = LinearLayoutManager(requireContext())
+//        setupSwipeListener(binding.reportRecyclerView)
+//        setHasOptionsMenu(true)
+//        return binding.root
+        return ComposeView(requireContext()).apply {
+            setContent {
+                MainView(
+                    onFilteredTextChanged = { reportViewModel.filterListByRequest(it) },
+                    listReport = reportViewModel.listReports.collectAsState().value
+                )
+            }
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
@@ -79,32 +83,32 @@ class MainFragment : Fragment() {
         return super.onOptionsItemSelected(item)
     }
 
-    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-
-        with(binding) {
-            addReportButton.setOnClickListener {
-                findNavController().navigate(R.id.fromMainPageToCreateReportPage)
-            }
-
-            filterRequest.addTextChangedListener {
-                if (!it.isNullOrBlank()) {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        reportViewModel.filterListByRequest(filterRequest.text.toString())
-                    }
-                } else {
-                    viewLifecycleOwner.lifecycleScope.launch {
-                        reportViewModel.updateData()
-                    }
-                }
-            }
-
-        }
-        reportViewModel.listReports.onEach {
-            adapter.submitList(it)
-        }.launchIn(viewLifecycleOwner.lifecycleScope)
-
-    }
+//    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+//        super.onViewCreated(view, savedInstanceState)
+//
+//        with(binding) {
+//            addReportButton.setOnClickListener {
+//                findNavController().navigate(R.id.fromMainPageToCreateReportPage)
+//            }
+//
+//            filterRequest.addTextChangedListener {
+//                if (!it.isNullOrBlank()) {
+//                    viewLifecycleOwner.lifecycleScope.launch {
+//                        reportViewModel.filterListByRequest(filterRequest.text.toString())
+//                    }
+//                } else {
+//                    viewLifecycleOwner.lifecycleScope.launch {
+//                        reportViewModel.updateData()
+//                    }
+//                }
+//            }
+//
+//        }
+//        reportViewModel.listReports.onEach {
+//            adapter.submitList(it)
+//        }.launchIn(viewLifecycleOwner.lifecycleScope)
+//
+//    }
 
 
     private fun setupSwipeListener(recyclerView: RecyclerView) {

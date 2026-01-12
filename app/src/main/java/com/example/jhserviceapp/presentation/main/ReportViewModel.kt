@@ -8,6 +8,7 @@ import com.example.jhserviceapp.domain.usecase.DeleteReportUseCase
 import com.example.jhserviceapp.domain.usecase.GetAllReportsUseCase
 import com.example.jhserviceapp.domain.usecase.GetLast20ReportsUseCase
 import com.example.jhserviceapp.domain.usecase.GetReportByDescriptionUseCase
+import com.example.jhserviceapp.domain.usecase.GetReportBySerialNumberUseCase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
@@ -18,7 +19,8 @@ class ReportViewModel @Inject constructor(
     private val deleteReportUseCase: DeleteReportUseCase,
     private val deleteReportArticleCrossRefUseCase: DeleteReportArticleCrossRefUseCase,
     private val getReportByDescriptionUseCase: GetReportByDescriptionUseCase,
-    private val getAllReportsUseCase: GetAllReportsUseCase
+    private val getAllReportsUseCase: GetAllReportsUseCase,
+    private val getReportBySerialNumberUseCase: GetReportBySerialNumberUseCase
 ) : ViewModel() {
     private val _listReport = MutableStateFlow<List<ReportWithArticleAndCount>>(emptyList())
     val listReports get() = _listReport.asStateFlow()
@@ -37,11 +39,14 @@ class ReportViewModel @Inject constructor(
         }
     }
 
-    suspend fun filterListByRequest(request: String) {
-        if (request == "*") {
-            _listReport.value = getAllReportsUseCase.getReports()
-        } else {
-            _listReport.value = getReportByDescriptionUseCase.getReportByDescription("%$request%")
+    fun filterListByRequest(request: String) {
+        viewModelScope.launch {
+            if (request == "*") {
+                _listReport.value = getAllReportsUseCase.getReports()
+            } else {
+                _listReport.value = getReportBySerialNumberUseCase.invoke("%$request")
+                _listReport.value += getReportByDescriptionUseCase.invoke("%$request%")
+            }
         }
     }
 
