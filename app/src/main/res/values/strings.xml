@@ -34,7 +34,7 @@
     <string name="user_was_save_toast_text">User was save</string>
     <string name="type_of_work_field_hint">type of work</string>
     <string name="storage_hint">storage</string>
-    <string name="customer_s_paid_checkbox">Paid</string>
+    <string name="customer_s_paid_checkbox">paid</string>
     <string name="number_report_field_hint">number report</string>
     <string name="internal_comments_hint">Internal comments</string>
     <string name="article_title_add_form">article</string>

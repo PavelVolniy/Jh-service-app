@@ -4,29 +4,17 @@ import android.content.Context
 import android.content.SharedPreferences
 import android.os.Bundle
 import android.text.InputFilter
-import android.text.InputType
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.view.inputmethod.InputMethodManager
 import android.widget.RadioButton
 import androidx.compose.ui.platform.ComposeView
-import androidx.core.view.isVisible
-import androidx.core.widget.addTextChangedListener
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.jhserviceapp.App
 import com.example.jhserviceapp.R
 import com.example.jhserviceapp.databinding.AddReportFragmentBinding
-import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.adapters.AddArticleAdapter
-import com.example.jhserviceapp.presentation.util.FormatDateUtil
-import com.google.android.material.datepicker.MaterialDatePicker
-import kotlinx.coroutines.flow.launchIn
-import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 const val CHAR_COUNT_8 = 8
@@ -57,12 +45,15 @@ class AddReportFragment : Fragment() {
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
-//        _binding = AddReportFragmentBinding.inflate(layoutInflater)
-//        binding.articleRecyclerView.adapter = adapter
-//        binding.articleRecyclerView.layoutManager = LinearLayoutManager(requireContext())
         return ComposeView(requireContext()).apply {
             setContent {
-                AddReportView()
+                AddReportView(
+                    onClickSave = {
+                        findNavController().navigate(R.id.fromCreateReportPageToMainPage)
+                    },
+                    onClickCancel = {
+                        findNavController().navigate(R.id.fromCreateReportPageToMainPage)
+                    })
             }
         }
 

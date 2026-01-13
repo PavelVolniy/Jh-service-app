@@ -13,6 +13,8 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -45,6 +47,9 @@ import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
+import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
+import com.example.jhserviceapp.domain.entity.report.ReportDTO
+import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -53,17 +58,21 @@ import java.time.format.DateTimeFormatter
 @Composable
 private fun PreviewAddReportView() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        AddReportView()
+        AddReportView({}, {})
     }
 }
 
 @Composable
-fun AddReportView() {
+fun AddReportView(
+    onClickSave: (reportWithArticle: ReportWithArticleAndCount) -> Unit,
+    onClickCancel: () -> Unit
+) {
     var lifterNumber by remember { mutableStateOf("") }
     var date by remember { mutableLongStateOf(System.currentTimeMillis()) }
     var hours by remember { mutableStateOf("") }
     var description by remember { mutableStateOf("") }
     var internalComments by remember { mutableStateOf("") }
+    var articleList by remember { mutableStateOf<List<ArticleWithCount>>(emptyList()) }
 
     Surface(color = colorResource(R.color.jhGrayLight)) {
         Column(
@@ -86,8 +95,36 @@ fun AddReportView() {
             DescriptionBox(label = stringResource(R.string.internal_comments_hint),
                 text = internalComments,
                 changeText = { internalComments = it })
-            ButtonsRow({}, {})
+            ArticleBox(articleList)
+            ButtonsRow(onClickCancel = onClickCancel, onClickSave = {
+                onClickSave(
+                    ReportWithArticleAndCount(
+                        ReportDTO(
+                            numberLoader = lifterNumber,
+                            hours = hours.toInt(),
+                            date = date,
+                            userName = "",
+                            userNumber = "",
+                            description = description,
+                            placeOfOperations = "", typeOfOperations = "",
+                            internalComments = internalComments
+                        ),
+                        articles = articleList
+                    )
+                )
+            })
         }
+    }
+}
+
+@Composable
+private fun ArticleBox(list: List<ArticleWithCount>) {
+    LazyColumn(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        items(list) { ArticleRowView(it) }
     }
 }
 
