@@ -31,11 +31,12 @@ class ReportViewModel @Inject constructor(
         }
     }
 
-    fun removeReport(report: ReportWithArticleAndCount) {
+    fun deleteReport(report: ReportWithArticleAndCount) {
         viewModelScope.launch {
             _listReport.value -= report
             report.report.id?.let { deleteReportArticleCrossRefUseCase.deleteCrossRef(reportId = it) }
             deleteReportUseCase.deleteReport(report.report)
+            updateData()
         }
     }
 

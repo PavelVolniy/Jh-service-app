@@ -36,7 +36,7 @@
     <string name="storage_hint">storage</string>
     <string name="customer_s_paid_checkbox">Paid</string>
     <string name="number_report_field_hint">number report</string>
-    <string name="internal_comments_hint">internal comments</string>
+    <string name="internal_comments_hint">Internal comments</string>
     <string name="article_title_add_form">article</string>
     <string name="name_article_title_add_form">name</string>
     <string name="num_title_add_form">num</string>
@@ -45,6 +45,8 @@
     <string name="add_art_button_settings">add</string>
     <string name="error_message_settings_page">will not be empty</string>
     <string name="article_number_field_hint_settings_page">article number</string>
+    <string name="min_length_8_symbols">Min length 8 symbols</string>
+    <string name="length_should_be_8_symbols">Length should be 8 symbols</string>
 
     <array name="typesOfOperations">
         <item>repair</item>

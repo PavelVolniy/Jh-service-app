@@ -45,6 +45,8 @@
     <string name="add_art_button_settings">добавить</string>
     <string name="error_message_settings_page">должно быть не пусным</string>
     <string name="article_number_field_hint_settings_page">артикул</string>
+    <string name="min_length_8_symbols">Минимальная длина 8 символов</string>
+    <string name="length_should_be_8_symbols">Должно быть 8 символов</string>
 
     <array name="typesOfOperations">
         <item>ремонт</item>

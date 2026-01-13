@@ -1,7 +1,7 @@
 package com.example.jhserviceapp.di
 
 import android.content.Context
-import com.example.jhserviceapp.presentation.addart.AddReportFragment
+import com.example.jhserviceapp.presentation.addreport.AddReportFragment
 import com.example.jhserviceapp.presentation.main.MainFragment
 import com.example.jhserviceapp.presentation.settings.SettingsFragment
 import dagger.BindsInstance

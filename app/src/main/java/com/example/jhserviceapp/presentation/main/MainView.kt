@@ -37,7 +37,6 @@ import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
-import com.example.jhserviceapp.domain.entity.Report
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 
@@ -85,7 +84,8 @@ fun MainView(
     listReport: List<ReportWithArticleAndCount> = emptyList(),
     onClickAdd: () -> Unit = {},
     onClickSettings: () -> Unit = {},
-    onClickShare: (report: ReportWithArticleAndCount) -> Unit = {}
+    onClickShare: (report: ReportWithArticleAndCount) -> Unit = {},
+    onSwipeToDelete: (report: ReportWithArticleAndCount) -> Unit = {}
 ) {
     var filterText by remember { mutableStateOf("") }
     Scaffold(
@@ -165,7 +165,7 @@ fun MainView(
                         items(listReport) { item ->
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 
-                                SwipeableItem(onSwipeToDelete = {}) {
+                                SwipeableItem(onSwipeToDelete = { onSwipeToDelete(item) }) {
                                     ReportItemRowView(report = item.report,
                                         onClickShare = { onClickShare(item) })
                                 }

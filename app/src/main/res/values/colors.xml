@@ -4,6 +4,7 @@
     <color name="white">#FFFFFFFF</color>
     <color name="jhYellow">#FFB900</color>
     <color name="jhGrayLight">#D7DADB</color>
+    <color name="jhGrayMedium">#9B9D9D</color>
     <color name="jhGrayDark">#3C464B</color>
     <color name="jhTextColorBlack">#3C464B</color>
     <color name="jhTextColorWhite">#EAEFF1</color>

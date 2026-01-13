@@ -44,7 +44,9 @@ class MainFragment : Fragment() {
                     onClickShare = { itemReport -> copyToClipboard(itemReport) },
                     onClickSettings = {
                         findNavController().navigate(R.id.fromMainPageToSettingsPage)
-                    }
+                    },
+                    onSwipeToDelete = { reportViewModel.deleteReport(it) },
+                    onClickAdd = { findNavController().navigate(R.id.fromMainPageToCreateReportPage) }
                 )
             }
         }

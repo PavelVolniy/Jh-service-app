@@ -40,7 +40,7 @@
 
     <fragment
         android:id="@+id/add_report_page"
-        android:name="com.example.jhserviceapp.presentation.addart.AddReportFragment"
+        android:name="com.example.jhserviceapp.presentation.addreport.AddReportFragment"
         android:label="@string/add_new_report_label"
         tools:layout="@layout/add_report_fragment">
         <action
