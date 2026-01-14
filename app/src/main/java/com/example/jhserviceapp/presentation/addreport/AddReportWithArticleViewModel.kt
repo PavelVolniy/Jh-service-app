@@ -10,7 +10,6 @@ import com.example.jhserviceapp.domain.entity.article.ArticleCountCrossRef
 import com.example.jhserviceapp.domain.entity.article.ArticleDTO
 import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
 import com.example.jhserviceapp.domain.entity.report.ReportArticleCrossRef
-import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.domain.usecase.AddArtCountCrossRefUseCase
 import com.example.jhserviceapp.domain.usecase.AddArticleCountsUseCase
@@ -60,36 +59,9 @@ class AddReportWithArticleViewModel @Inject constructor(
     }
 
     fun addReport(
-        numberLoader: String,
-        date: Long,
-        hours: Int,
-        description: String,
-        userName: String,
-        placeOfOperations: String,
-        typeOfOperations: String,
-        internalComments: String,
-        userNumber: String
+        reportArticleWithCount: ReportWithArticleAndCount,
     ) {
-
-        val reportArticleWithCount =
-            ReportWithArticleAndCount(
-                report = ReportDTO(
-                    id = editableReportId,
-                    numberLoader = numberLoader,
-                    date = date,
-                    hours = hours,
-                    description = description,
-                    userName = userName,
-                    placeOfOperations = placeOfOperations,
-                    typeOfOperations = typeOfOperations,
-                    internalComments = internalComments,
-                    userNumber = userNumber
-                ),
-                articles = articles.value.ifEmpty { emptyList() }
-            )
-
         viewModelScope.launch {
-
             if (oldReport != null) {
                 delArticleCountCrossRef.deleteArticleWithCrossRef(oldReport!!.report.id!!)
                 delReportArticleCrossRefUseCase.deleteCrossRef(oldReport!!.report.id!!)

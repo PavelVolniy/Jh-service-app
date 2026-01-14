@@ -41,7 +41,7 @@ interface ReportDao {
     suspend fun addReportWithArticleCrossRef(reportArticleCrossRef: List<ReportArticleCrossRef>)
 
     @Transaction
-    @Query("SELECT * FROM reports ORDER BY reportId DESC LIMIT 20")
+    @Query("SELECT * FROM reports ORDER BY date DESC LIMIT 20")
     suspend fun getLast20Reports(): List<ReportWithArticleAndCount>
 
     @Transaction
@@ -49,11 +49,11 @@ interface ReportDao {
     suspend fun getAllReports(): List<ReportWithArticleAndCount>
 
     @Transaction
-    @Query("SELECT * FROM reports WHERE description LIKE :request ORDER BY reportId DESC")
+    @Query("SELECT * FROM reports WHERE description LIKE :request ORDER BY date DESC")
     suspend fun getReportByDescription(request: String): List<ReportWithArticleAndCount>
 
     @Transaction
-    @Query("SELECT * FROM reports WHERE numberLoader LIKE :request ORDER BY reportId DESC")
+    @Query("SELECT * FROM reports WHERE numberLoader LIKE :request ORDER BY date DESC")
     suspend fun getReportBySerialNumber(request: String): List<ReportWithArticleAndCount>
 
     @Query("SELECT * FROM reports WHERE reportId = :id")

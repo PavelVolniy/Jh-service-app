@@ -42,18 +42,20 @@ class ReportViewModel @Inject constructor(
 
     fun filterListByRequest(request: String) {
         viewModelScope.launch {
-            if (request == "*") {
-                _listReport.value = getAllReportsUseCase.getReports()
-            } else {
-                _listReport.value = getReportBySerialNumberUseCase.invoke("%$request")
-                _listReport.value += getReportByDescriptionUseCase.invoke("%$request%")
-            }
+            if (request.isNotEmpty()) {
+                if (request == "*") {
+                    _listReport.value = getAllReportsUseCase.getReports()
+                } else {
+                    _listReport.value = getReportBySerialNumberUseCase.invoke("%$request")
+                    _listReport.value += getReportByDescriptionUseCase.invoke("%$request%")
+                }
+            } else _listReport.value = getLast20ReportsUseCase.invoke()
         }
     }
 
     suspend fun updateData() {
         _listReport.value = emptyList()
-        _listReport.value = getLast20ReportsUseCase.getReports()
+        _listReport.value = getLast20ReportsUseCase.invoke()
     }
 
 }

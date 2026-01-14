@@ -58,6 +58,12 @@ fun SwipeableItem(
                                 animationSpec = tween(300)
                             )
                             onSwipeToDelete()
+                            animatableOffset.animateTo(
+                                targetValue = 0f,
+                                animationSpec = spring(
+                                    dampingRatio = Spring.DampingRatioMediumBouncy
+                                )
+                            )
                         } else {
                             // Возвращаем на место
                             animatableOffset.animateTo(
