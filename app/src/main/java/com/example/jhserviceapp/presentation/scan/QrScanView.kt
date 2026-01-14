@@ -1,0 +1,312 @@
+package com.example.jhserviceapp.presentation.scan
+
+import android.net.Uri
+import android.view.Gravity
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalView
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.text.TextStyle
+import androidx.compose.ui.tooling.preview.Preview
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.window.DialogProperties
+import androidx.compose.ui.window.DialogWindowProvider
+import coil.compose.AsyncImage
+import com.example.jhserviceapp.R
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
+
+@Preview(showBackground = true, apiLevel = 34)
+@Composable
+fun PreviewQrScanView() {
+    QrScanView()
+}
+
+@Composable
+fun QrScanView(
+    scanState: QrScanState = QrScanState.Wait,
+    onClickManuallyButton: () -> Unit = {},
+    onClickRestartButton: () -> Unit = {},
+    isDetectedQrCode: (row: String) -> Unit = {},
+    onClickGalleryButton: () -> Unit = {},
+    onClickDocumentButton: () -> Unit = {},
+) {
+    var torch by remember { mutableStateOf(false) }
+    var isVisibleButtons by remember { mutableStateOf(false) }
+    var isVisibleHelpInfo by remember { mutableStateOf(false) }
+    var qrScanStateText by remember { mutableStateOf("") }
+    var qrScanHelpInfo by remember { mutableStateOf("") }
+    var isShowDialog by remember { mutableStateOf(false) }
+
+    var selectImage by remember { mutableStateOf<Uri?>(null) }
+//    val galleryLauncher =
+//        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
+//            selectImage = it
+//        }
+
+    when (scanState) {
+        QrScanState.Wait -> {
+            isVisibleButtons = false
+            isVisibleHelpInfo = true
+//            qrScanStateText = stringResource(R.string.qr_code_with_description)
+//            qrScanHelpInfo = stringResource(R.string.qr_code_help_info)
+        }
+
+        QrScanState.Scanning -> {
+//            qrScanStateText = stringResource(R.string.scanning_process_qr_scan_text)
+            isVisibleHelpInfo = false
+            isVisibleButtons = false
+        }
+
+        QrScanState.Error -> {
+            isVisibleButtons = true
+            isVisibleHelpInfo = true
+//            qrScanStateText = stringResource(R.string.error_title_qr_code)
+//            qrScanHelpInfo = stringResource(R.string.error_description_qr_code)
+            selectImage = null
+        }
+
+        QrScanState.Success -> {
+            //TODO не обязательная часть кода
+            isVisibleButtons = false
+            isVisibleHelpInfo = true
+//            qrScanStateText = stringResource(R.string.qr_code_with_description)
+//            qrScanHelpInfo = stringResource(R.string.qr_code_help_info)
+        }
+    }
+
+    Surface(
+        shape = RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
+    ) {
+        Box {
+            if (selectImage != null) {
+                Surface(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .align(Alignment.Center)
+                ) {
+                    AsyncImage(
+                        model = selectImage,
+                        contentDescription = null
+                    )
+                }
+                BarcodeScanning.getClient(
+                    BarcodeScannerOptions.Builder()
+                        .setBarcodeFormats(Barcode.FORMAT_QR_CODE)
+                        .build()
+                ).process(InputImage.fromFilePath(LocalContext.current, selectImage!!))
+                    .addOnSuccessListener { barcodes ->
+                        barcodes.firstOrNull()?.let {
+                            isDetectedQrCode(it.rawValue ?: "")
+                        }
+                    }
+            } else {
+                CameraView(result = { row ->
+                    isDetectedQrCode(row)
+                }, torch = torch)
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxSize(),
+//                    .background(ColorBackGroundCamera),
+                horizontalAlignment = Alignment.CenterHorizontally,
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth(),
+//                        .background(ColorBackGroundCamera),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
+                ) {
+//                    Image(
+//                        painter = painterResource(R.drawable.bottom_sheet_line),
+//                        contentDescription = null
+//                    )
+
+                    Text(
+                        text = "stringResource(R.string.qr_code_title)",
+                        style = TextStyle(
+//                            color = ColorSettingsWhite,
+                            fontSize = 22.sp
+                        )
+                    )
+
+                    Spacer(Modifier.height(30.dp))
+                    Text(
+                        text = qrScanStateText,
+                        style = TextStyle(
+                            fontSize = 18.sp,
+//                            color = ColorSettingsWhite
+                        )
+                    )
+                    Text(
+                        modifier = Modifier.alpha(if (isVisibleHelpInfo) 1f else 0f),
+                        text = qrScanHelpInfo,
+                        style = TextStyle(
+                            color = Color.Gray,
+                            fontSize = 14.sp
+                        )
+                    )
+                    Spacer(Modifier.height(100.dp))
+                }
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(205.dp),
+                    horizontalArrangement = Arrangement.Center,
+                ) {
+                    Text(
+                        text = "",
+                        modifier = Modifier
+//                            .background(ColorBackGroundCamera)
+                            .fillMaxHeight()
+                            .weight(0.5f)
+                    )
+                    QrCodeAim(state = scanState)
+                    Text(
+                        text = "",
+                        modifier = Modifier
+//                            .background(ColorBackGroundCamera)
+                            .fillMaxHeight()
+                            .weight(0.5f)
+                    )
+                }
+                Box(
+                    modifier = Modifier
+//                        .background(ColorBackGroundCamera)
+                        .fillMaxWidth()
+                ) {
+                    Surface(
+                        shape = RoundedCornerShape(15.dp),
+                        contentColor = Color.White,
+                        modifier = Modifier
+                            .align(Alignment.Center)
+                            .padding(40.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier
+//                                .background(ColorMain)
+                                .padding(horizontal = 10.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+//                            IconButton(onClick = {
+//                                isShowDialog = true
+//                            }) {
+//                                Icon(
+//                                    painter = painterResource(R.drawable.ic_picture_home_page),
+//                                    contentDescription = null
+//                                )
+//                            }
+                            IconButton(onClick = {
+                                torch = !torch
+                            }) {
+                                Icon(
+                                    painter = painterResource(R.drawable.ic_flash_home_page),
+                                    contentDescription = null
+                                )
+                            }
+                        }
+                    }
+
+                }
+                Column(
+                    modifier = Modifier
+//                        .background(ColorBackGroundCamera)
+                        .fillMaxHeight(),
+                    verticalArrangement = Arrangement.Bottom,
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    if (isShowDialog) {
+                        Dialog(
+                            onDismissRequest = { isShowDialog = false },
+                            properties = DialogProperties(usePlatformDefaultWidth = false)
+                        ) {
+                            val dialogWindowProvider =
+                                LocalView.current.parent as DialogWindowProvider
+                            dialogWindowProvider.window.setGravity(Gravity.BOTTOM)
+                            Column(Modifier.padding(horizontal = 10.dp)) {
+                                QrScanDialog(
+                                    onClickGalleryButton = {
+                                        onClickGalleryButton()
+//                                        galleryLauncher.launch("image/*")
+                                        isShowDialog = false
+                                    },
+                                    onClickDocumentButton = onClickDocumentButton,
+                                    onClickCancelButton = { isShowDialog = false }
+                                )
+
+
+                            }
+                        }
+                    }
+                    OutlinedButton(
+                        onClick = {
+                            onClickRestartButton()
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .alpha(if (isVisibleButtons) 1f else 0f),
+                        colors = ButtonColors(
+                            containerColor = Color.Green,
+                            contentColor = Color.Green,
+                            disabledContentColor = Color.Gray,
+                            disabledContainerColor = Color.Gray
+                        ),
+                        border = BorderStroke(1.dp, Color.Blue)
+                    ) { Text(text = "stringResource(R.string.try_again_button)") }
+
+                    Button(
+                        onClick = onClickManuallyButton,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(horizontal = 16.dp)
+                            .padding(bottom = 20.dp)
+                            .alpha(if (isVisibleButtons) 1f else 0f),
+                        colors = ButtonColors(
+                            containerColor = Color.Green,
+                            contentColor = Color.Green,
+                            disabledContentColor = Color.Gray,
+                            disabledContainerColor = Color.Gray
+                        ),
+                    ) {
+                        Text(text = "stringResource(R.string.enter_manually_button)")
+                    }
+                }
+            }
+        }
+    }
+}

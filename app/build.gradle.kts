@@ -91,6 +91,19 @@ dependencies {
     kapt("androidx.room:room-compiler:$roomVersion")
     implementation("androidx.room:room-ktx:$roomVersion")
 
+    val camerax_version = "1.5.1"
+    implementation("androidx.camera:camera-core:${camerax_version}")
+    implementation("androidx.camera:camera-camera2:${camerax_version}")
+    implementation("androidx.camera:camera-lifecycle:${camerax_version}")
+    implementation("androidx.camera:camera-view:1.5.1")
+
+    //mlKit
+    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+
+    //Coil compose
+    implementation("io.coil-kt:coil-compose:2.7.0")
+    implementation("io.coil-kt:coil:2.7.0")
+
 //    //POI
 //    implementation("org.apache.poi:poi:4.0.0")
 //    implementation("org.apache.poi:poi-ooxml:4.0.0")

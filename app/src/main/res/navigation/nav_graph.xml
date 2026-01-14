@@ -62,7 +62,6 @@
             android:id="@+id/fromSettingPageToMain_page"
             app:destination="@id/main_page"
             app:enterAnim="@anim/enter_slide_right"
-            app:exitAnim="@anim/exit_slide_right"
-            app:popUpTo="@id/main_page" />
+            app:exitAnim="@anim/exit_slide_right" />
     </fragment>
 </navigation>
