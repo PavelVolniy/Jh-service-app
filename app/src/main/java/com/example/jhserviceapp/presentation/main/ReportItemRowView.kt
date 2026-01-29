@@ -6,6 +6,7 @@ import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -59,7 +60,8 @@ private fun PreviewReportItemRowView() {
 @Composable
 fun ReportItemRowView(
     report: Report,
-    onClickShare: () -> Unit = {}
+    onClickShare: () -> Unit = {},
+    onLongClick: () -> Unit = {}
 ) {
     val date = Instant
         .ofEpochMilli(report.date)
@@ -74,13 +76,28 @@ fun ReportItemRowView(
         border = BorderStroke(2.dp, color = colorResource(R.color.black))
     ) {
         Column(
-            modifier = Modifier.background(colorResource(R.color.jhGrayLight))
+            modifier = Modifier
+                .combinedClickable(
+                    onLongClick = { onLongClick() },
+                    interactionSource = null,
+                    indication = null,
+                    enabled = true,
+                    onClickLabel = null,
+                    role = null,
+                    onLongClickLabel = null,
+                    onDoubleClick = null,
+                    hapticFeedbackEnabled = true,
+                    onClick = {},
+                )
+                .background(colorResource(R.color.jhGrayLight))
                 .padding(top = 10.dp),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
@@ -94,7 +111,9 @@ fun ReportItemRowView(
                 )
             }
             Row(
-                modifier = Modifier.fillMaxWidth().padding(horizontal = 10.dp),
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 10.dp),
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {

@@ -16,17 +16,21 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +43,8 @@ import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
+import com.example.jhserviceapp.presentation.addreport.AddReportView
+import kotlinx.coroutines.launch
 
 
 @Preview(apiLevel = 34)
@@ -78,6 +84,7 @@ private fun PreviewMainView() {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainView(
     onFilteredTextChanged: (text: String) -> Unit = {},
@@ -85,9 +92,14 @@ fun MainView(
     onClickAdd: () -> Unit = {},
     onClickSettings: () -> Unit = {},
     onClickShare: (report: ReportWithArticleAndCount) -> Unit = {},
-    onSwipeToDelete: (report: ReportWithArticleAndCount) -> Unit = {}
+    onSwipeToDelete: (report: ReportWithArticleAndCount) -> Unit = {},
+    onClickSaveReportWithArticleAndCount: (report: ReportWithArticleAndCount) -> Unit = {}
 ) {
     var filterText by remember { mutableStateOf("") }
+    var longClickItem by remember { mutableStateOf<ReportWithArticleAndCount?>(null) }
+    val scope = rememberCoroutineScope()
+    val bottomSheetState = rememberModalBottomSheetState(true)
+
     Scaffold(
         topBar = {
             Surface(color = colorResource(R.color.jhGrayLight)) {
@@ -112,7 +124,7 @@ fun MainView(
 
                 }
             }
-        }
+        },
     ) {
         Surface(
             modifier = Modifier
@@ -141,9 +153,9 @@ fun MainView(
                         },
                         modifier = Modifier.fillMaxWidth(),
                         value = filterText,
-                        onValueChange = {
-                            filterText = it
-                            onFilteredTextChanged(it)
+                        onValueChange = { text ->
+                            filterText = text
+                            onFilteredTextChanged(text)
                         },
                         trailingIcon = {
                             if (filterText.isNotEmpty())
@@ -167,7 +179,8 @@ fun MainView(
 
                                 SwipeableItem(onSwipeToDelete = { onSwipeToDelete(item) }) {
                                     ReportItemRowView(report = item.report,
-                                        onClickShare = { onClickShare(item) })
+                                        onClickShare = { onClickShare(item) },
+                                        onLongClick = { longClickItem = item })
                                 }
                             }
                         }
@@ -189,6 +202,36 @@ fun MainView(
                         )
                     }
                 }
+            }
+        }
+        if (longClickItem != null) {
+            ModalBottomSheet(
+                containerColor = colorResource(R.color.jhGrayLight),
+                sheetState = bottomSheetState,
+                onDismissRequest = {
+                    scope.launch {
+                        bottomSheetState.hide()
+                        longClickItem = null
+                    }
+                }
+            ) {
+                AddReportView(
+                    reportWithArticle = longClickItem,
+                    onClickSave = { report ->
+                        scope.launch {
+                            onClickSaveReportWithArticleAndCount(report)
+                            bottomSheetState.hide()
+                            longClickItem = null
+                        }
+
+                    },
+                    onClickCancel = {
+                        scope.launch {
+                            bottomSheetState.hide()
+                            longClickItem = null
+                        }
+                    }
+                )
             }
         }
     }

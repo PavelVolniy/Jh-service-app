@@ -21,14 +21,17 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
@@ -50,6 +53,7 @@ import com.example.jhserviceapp.R
 import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
+import com.example.jhserviceapp.presentation.scan.QrScanViewContainer
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -58,22 +62,36 @@ import java.time.format.DateTimeFormatter
 @Composable
 private fun PreviewAddReportView() {
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-        AddReportView({}, {})
+        AddReportView(null, {}, {})
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AddReportView(
+    reportWithArticle: ReportWithArticleAndCount? = null,
     onClickSave: (reportWithArticle: ReportWithArticleAndCount) -> Unit,
     onClickCancel: () -> Unit
 ) {
-    var lifterNumber by remember { mutableStateOf("") }
-    var date by remember { mutableLongStateOf(System.currentTimeMillis()) }
-    var hours by remember { mutableStateOf("") }
-    var description by remember { mutableStateOf("") }
-    var internalComments by remember { mutableStateOf("") }
+    var lifterNumber by remember {
+        mutableStateOf(
+            reportWithArticle?.report?.numberLoader ?: ""
+        )
+    }
+    var date by remember {
+        mutableLongStateOf(
+            reportWithArticle?.report?.date ?: System.currentTimeMillis()
+        )
+    }
+    var hours by remember { mutableStateOf(reportWithArticle?.report?.hours?.toString() ?: "") }
+    var description by remember { mutableStateOf(reportWithArticle?.report?.description ?: "") }
+    var internalComments by remember {
+        mutableStateOf(
+            reportWithArticle?.report?.internalComments ?: ""
+        )
+    }
     var articleList by remember { mutableStateOf<List<ArticleWithCount>>(emptyList()) }
-
+    var isShowScan by remember { mutableStateOf(false) }
     Surface(color = colorResource(R.color.jhGrayLight)) {
         Column(
             modifier = Modifier
@@ -96,23 +114,45 @@ fun AddReportView(
                 text = internalComments,
                 changeText = { internalComments = it })
             ArticleBox(articleList)
-            ButtonsRow(onClickCancel = onClickCancel, onClickSave = {
-                onClickSave(
-                    ReportWithArticleAndCount(
-                        ReportDTO(
-                            numberLoader = lifterNumber,
-                            hours = hours.toInt(),
-                            date = date,
-                            userName = "",
-                            userNumber = "",
-                            description = description,
-                            placeOfOperations = "", typeOfOperations = "",
-                            internalComments = internalComments
-                        ),
-                        articles = articleList
+            ButtonsRow(
+                onClickCancel = onClickCancel, onClickSave = {
+                    onClickSave(
+                        ReportWithArticleAndCount(
+                            ReportDTO(
+                                id = reportWithArticle?.report?.id,
+                                numberLoader = lifterNumber,
+                                hours = hours.toInt(),
+                                date = date,
+                                userName = "",
+                                userNumber = "",
+                                description = description,
+                                placeOfOperations = "", typeOfOperations = "",
+                                internalComments = internalComments
+                            ),
+                            articles = articleList
+                        )
                     )
-                )
-            })
+                },
+                enabled = lifterNumber.isNotEmpty()
+                        && lifterNumber.length > 5
+                        && hours.isNotEmpty()
+                        && description.isNotEmpty()
+            )
+//            TextButton(
+//                shape = RoundedCornerShape(10.dp),
+//                border = BorderStroke(1.5.dp, color = colorResource(R.color.jhGrayDark)),
+//                onClick = { isShowScan = !isShowScan }) {
+//                Text(text = "scan")
+//            }
+            if (isShowScan) {
+                val state = rememberModalBottomSheetState(true)
+                ModalBottomSheet(
+                    sheetState = state,
+                    onDismissRequest = { isShowScan = false }
+                ) {
+                    QrScanViewContainer()
+                }
+            }
         }
     }
 }
@@ -129,7 +169,7 @@ private fun ArticleBox(list: List<ArticleWithCount>) {
 }
 
 @Composable
-fun ButtonsRow(onClickSave: () -> Unit, onClickCancel: () -> Unit) {
+fun ButtonsRow(onClickSave: () -> Unit, onClickCancel: () -> Unit, enabled: Boolean) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(30.dp)
@@ -146,9 +186,13 @@ fun ButtonsRow(onClickSave: () -> Unit, onClickCancel: () -> Unit) {
             )
         }
         TextButton(
+            enabled = enabled,
             modifier = Modifier.width(100.dp),
             shape = RoundedCornerShape(5.dp),
-            border = BorderStroke(1.5.dp, colorResource(R.color.jhYellow)),
+            border = BorderStroke(
+                1.5.dp, if (enabled) colorResource(R.color.jhYellow)
+                else colorResource(R.color.jhGrayMedium)
+            ),
             onClick = onClickSave
         ) {
             Text(

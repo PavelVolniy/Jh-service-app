@@ -6,7 +6,7 @@ import androidx.compose.runtime.Composable
 fun QrScanViewContainer(
 //    qrScanViewModel: QrScanViewModel,
     onClickManuallyButton: () -> Unit = {},
-    onSuccessScan: @Composable () -> Unit,
+//    onSuccessScan: @Composable () -> Unit,
     onClickGalleryButton: () -> Unit = {},
     onClickDocumentButton: () -> Unit = {},
 ) {

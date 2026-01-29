@@ -26,9 +26,7 @@ class ReportViewModel @Inject constructor(
     val listReports get() = _listReport.asStateFlow()
 
     init {
-        viewModelScope.launch {
-            updateData()
-        }
+        updateData()
     }
 
     fun deleteReport(report: ReportWithArticleAndCount) {
@@ -53,9 +51,11 @@ class ReportViewModel @Inject constructor(
         }
     }
 
-    suspend fun updateData() {
-        _listReport.value = emptyList()
-        _listReport.value = getLast20ReportsUseCase.invoke()
+    fun updateData() {
+        viewModelScope.launch {
+            _listReport.value = emptyList()
+            _listReport.value = getLast20ReportsUseCase.invoke()
+        }
     }
 
 }

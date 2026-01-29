@@ -13,8 +13,8 @@ android {
         applicationId = "com.example.jhserviceapp"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 2
+        versionName = "1.01"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
@@ -98,7 +98,9 @@ dependencies {
     implementation("androidx.camera:camera-view:1.5.1")
 
     //mlKit
-    implementation("com.google.mlkit:barcode-scanning:17.3.0")
+    implementation("com.google.mlkit:barcode-scanning:16.0.0")
+    implementation("androidx.camera:camera-mlkit-vision:1.3.0")
+    implementation ("com.google.mlkit:text-recognition:16.0.0")
 
     //Coil compose
     implementation("io.coil-kt:coil-compose:2.7.0")
