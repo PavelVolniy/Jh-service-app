@@ -2,7 +2,6 @@ package com.example.jhserviceapp.presentation.scan
 
 import android.content.Context
 import android.util.Log
-import android.view.ViewGroup
 import androidx.camera.core.Camera
 import androidx.camera.core.CameraSelector
 import androidx.camera.core.ImageAnalysis
@@ -103,7 +102,11 @@ fun CameraView(
                         }
                     },
                     onError = { error ->
-                        Log.e("CameraView", "Camera initialization error: ${error.localizedMessage}", error)
+                        Log.e(
+                            "CameraView",
+                            "Camera initialization error: ${error.localizedMessage}",
+                            error
+                        )
                     }
                 )
             }

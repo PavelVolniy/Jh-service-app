@@ -13,14 +13,12 @@ import android.widget.Toast
 import androidx.compose.runtime.collectAsState
 import androidx.compose.ui.platform.ComposeView
 import androidx.fragment.app.Fragment
-import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import com.example.jhserviceapp.App
 import com.example.jhserviceapp.R
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.addreport.AddReportWithArticleViewModel
 import com.example.jhserviceapp.presentation.util.FormatDateUtil
-import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 class MainFragment : Fragment() {
@@ -55,8 +53,8 @@ class MainFragment : Fragment() {
                     onSwipeToDelete = { reportViewModel.deleteReport(it) },
                     onClickAdd = { findNavController().navigate(R.id.fromMainPageToCreateReportPage) },
                     onClickSaveReportWithArticleAndCount = {
-                            addReportViewModel.addReport(it)
-                            reportViewModel.updateData()
+                        addReportViewModel.addReport(it)
+                        reportViewModel.updateData()
                     }
                 )
             }

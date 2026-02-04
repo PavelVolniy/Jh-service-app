@@ -42,7 +42,7 @@ class AddReportFragment : Fragment() {
     ): View {
         return ComposeView(requireContext()).apply {
             setContent {
-                requestPermission()
+//                requestPermission()
                 AddReportView(
                     onClickSave = {
                         addReportWithArticleViewModel.addReport(it)

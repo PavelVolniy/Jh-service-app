@@ -17,6 +17,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.text.input.rememberTextFieldState
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -33,6 +34,7 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
@@ -40,13 +42,18 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.FocusRequester
+import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextRange
+import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.input.TransformedText
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
@@ -85,6 +92,7 @@ fun AddReportView(
     }
     var hours by remember { mutableStateOf(reportWithArticle?.report?.hours?.toString() ?: "") }
     var description by remember { mutableStateOf(reportWithArticle?.report?.description ?: "") }
+//    val description = rememberTextFieldState()
     var internalComments by remember {
         mutableStateOf(
             reportWithArticle?.report?.internalComments ?: ""
@@ -92,6 +100,7 @@ fun AddReportView(
     }
     var articleList by remember { mutableStateOf<List<ArticleWithCount>>(emptyList()) }
     var isShowScan by remember { mutableStateOf(false) }
+    val focus = remember { FocusRequester() }
     Surface(color = colorResource(R.color.jhGrayLight)) {
         Column(
             modifier = Modifier
@@ -100,19 +109,24 @@ fun AddReportView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            LoaderNumberRow(lifterNumber, onValueChanged = { lifterNumber = it })
+            LoaderNumberRow(lifterNumber, onValueChanged = { lifterNumber = it }, focus = focus)
             DateHoursRow(
                 hours = hours,
                 date = date,
                 selectedDate = { date = it },
-                changeHours = { hours = it }
+                changeHours = { hours = it },
+                focus = focus
             )
-            DescriptionBox(label = stringResource(R.string.description_text),
+            DescriptionBox(
+                label = stringResource(R.string.description_text),
                 text = description,
-                changeText = { description = it })
-            DescriptionBox(label = stringResource(R.string.internal_comments_hint),
+                changeText = { description = it },
+            )
+            DescriptionBox(
+                label = stringResource(R.string.internal_comments_hint),
                 text = internalComments,
-                changeText = { internalComments = it })
+                changeText = { internalComments = it },
+            )
             ArticleBox(articleList)
             ButtonsRow(
                 onClickCancel = onClickCancel, onClickSave = {
@@ -203,15 +217,15 @@ fun ButtonsRow(onClickSave: () -> Unit, onClickCancel: () -> Unit, enabled: Bool
     }
 }
 
-
 @Composable
 private fun DescriptionBox(
     label: String,
     text: String,
-    changeText: (description: String) -> Unit = {}
+    changeText: (description: String) -> Unit = {},
 ) {
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth(),
         value = text,
         onValueChange = { changeText(it) },
         maxLines = 20,
@@ -220,7 +234,8 @@ private fun DescriptionBox(
         },
         keyboardOptions = KeyboardOptions.Default.copy(
             autoCorrectEnabled = true,
-            keyboardType = KeyboardType.Text
+            keyboardType = KeyboardType.Text,
+            capitalization = KeyboardCapitalization.Sentences
         )
     )
 }
@@ -230,8 +245,13 @@ private fun DateHoursRow(
     date: Long,
     hours: String,
     selectedDate: (date: Long) -> Unit = {},
-    changeHours: (hours: String) -> Unit = {}
+    changeHours: (hours: String) -> Unit = {},
+    focus: FocusRequester
 ) {
+    LaunchedEffect(Unit) {
+        focus.freeFocus()
+    }
+
     val datePickerState = rememberDatePickerState()
     var isShowDatePicker by remember { mutableStateOf(false) }
     Row(
@@ -294,13 +314,21 @@ private fun dateToStringFormat(dateInMillis: Long) = Instant
     .toString()
 
 @Composable
-private fun LoaderNumberRow(lifterNumber: String, onValueChanged: (text: String) -> Unit) {
+private fun LoaderNumberRow(
+    lifterNumber: String, onValueChanged: (text: String) -> Unit,
+    focus: FocusRequester
+) {
     var isFnType by remember { mutableStateOf(false) }
     var isStringType by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
     var textState by remember { mutableStateOf(TextFieldValue(lifterNumber)) }
+    LaunchedEffect(Unit) {
+        focus.requestFocus()
+    }
     OutlinedTextField(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .focusRequester(focus),
         value = textState.copy(selection = TextRange(textState.text.length)),
         onValueChange = {
             onValueChanged(it.text)

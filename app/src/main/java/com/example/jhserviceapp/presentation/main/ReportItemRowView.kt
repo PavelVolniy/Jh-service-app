@@ -14,12 +14,12 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -71,6 +71,7 @@ fun ReportItemRowView(
         .toString()
     val colorTitle = colorResource(R.color.jhTextColorBlack)
     var onClickText by remember { mutableStateOf(false) }
+    var paddingForIcon by remember { mutableIntStateOf(5) }
     Surface(
         shape = RoundedCornerShape(10.dp),
         border = BorderStroke(2.dp, color = colorResource(R.color.black))
@@ -125,7 +126,10 @@ fun ReportItemRowView(
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(
                     modifier = Modifier
-                        .clickable { onClickText = !onClickText }
+                        .clickable {
+                            onClickText = !onClickText
+                            paddingForIcon = if (!onClickText) 5 else 10
+                        }
                         .fillMaxWidth()
                         .background(colorResource(R.color.jhGrayDark))
                         .padding(vertical = 20.dp, horizontal = 10.dp),
@@ -137,14 +141,14 @@ fun ReportItemRowView(
                 Icon(
                     modifier = Modifier
                         .align(Alignment.BottomEnd)
-                        .clickable { onClickShare() },
+                        .clickable { onClickShare() }
+                        .padding(end = paddingForIcon.dp, bottom = paddingForIcon.dp),
                     painter = painterResource(R.drawable.ic_share_button),
                     contentDescription = null,
                     tint = colorResource(R.color.jhYellow)
                 )
             }
             if (onClickText) {
-                HorizontalDivider()
                 Text(
                     modifier = Modifier
                         .clickable { onClickText = !onClickText }
