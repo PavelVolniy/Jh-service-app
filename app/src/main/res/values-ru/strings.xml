@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="app_name">JH service APP</string>
+    <string name="app_name">JH-service-APP</string>
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="jh_service_label_start_page">JH сервис</string>
     <string name="default_user_name_text">Иванов И</string>
@@ -47,6 +47,7 @@
     <string name="article_number_field_hint_settings_page">артикул</string>
     <string name="min_length_8_symbols">Минимальная длина 8 символов</string>
     <string name="length_should_be_8_symbols">Должно быть 8 символов</string>
+    <string name="scan_button_text">Сканировать</string>
 
     <array name="typesOfOperations">
         <item>ремонт</item>

@@ -17,7 +17,8 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.foundation.text.input.rememberTextFieldState
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -39,6 +40,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -52,8 +54,6 @@ import androidx.compose.ui.text.TextRange
 import androidx.compose.ui.text.input.KeyboardCapitalization
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.TextFieldValue
-import androidx.compose.ui.text.input.TransformedText
-import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import com.example.jhserviceapp.R
@@ -61,6 +61,8 @@ import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.scan.QrScanViewContainer
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
 import java.time.format.DateTimeFormatter
@@ -80,6 +82,7 @@ fun AddReportView(
     onClickSave: (reportWithArticle: ReportWithArticleAndCount) -> Unit,
     onClickCancel: () -> Unit
 ) {
+    val scope = rememberCoroutineScope()
     var lifterNumber by remember {
         mutableStateOf(
             reportWithArticle?.report?.numberLoader ?: ""
@@ -109,7 +112,14 @@ fun AddReportView(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            LoaderNumberRow(lifterNumber, onValueChanged = { lifterNumber = it }, focus = focus)
+            LoaderNumberRow(
+                TextFieldValue(
+                    text = lifterNumber,
+                    selection = if (lifterNumber.isNotEmpty()) TextRange(lifterNumber.length) else TextRange.Zero
+                ),
+                onValueChanged = { lifterNumber = it },
+                focus = focus
+            )
             DateHoursRow(
                 hours = hours,
                 date = date,
@@ -152,19 +162,30 @@ fun AddReportView(
                         && hours.isNotEmpty()
                         && description.isNotEmpty()
             )
-//            TextButton(
-//                shape = RoundedCornerShape(10.dp),
-//                border = BorderStroke(1.5.dp, color = colorResource(R.color.jhGrayDark)),
-//                onClick = { isShowScan = !isShowScan }) {
-//                Text(text = "scan")
-//            }
+            TextButton(
+                modifier = Modifier.width(100.dp),
+                shape = RoundedCornerShape(10.dp),
+                border = BorderStroke(1.5.dp, color = colorResource(R.color.jhGrayMedium)),
+                onClick = { isShowScan = !isShowScan }) {
+                Text(
+                    text = stringResource(R.string.scan_button_text),
+                    color = colorResource(R.color.jhGrayDark)
+                )
+            }
             if (isShowScan) {
                 val state = rememberModalBottomSheetState(true)
                 ModalBottomSheet(
                     sheetState = state,
                     onDismissRequest = { isShowScan = false }
                 ) {
-                    QrScanViewContainer()
+                    QrScanViewContainer(onSuccessResult = {
+                        scope.launch {
+                            lifterNumber = it
+                            delay(500)
+                            state.hide()
+                            isShowScan = false
+                        }
+                    })
                 }
             }
         }
@@ -277,6 +298,7 @@ private fun DateHoursRow(
                 }
                 Icon(
                     painter = painterResource(R.drawable.ic_calendar),
+                    tint = colorResource(R.color.jhGrayDark),
                     contentDescription = null
                 )
             }
@@ -300,7 +322,13 @@ private fun DateHoursRow(
             maxLines = 1,
             onValueChange = { if (hours.length < 6) changeHours(it) },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-            leadingIcon = { Text(text = "H") },
+            leadingIcon = {
+                Icon(
+                    imageVector = Icons.Default.AccessTime,
+                    tint = colorResource(R.color.jhGrayDark),
+                    contentDescription = null
+                )
+            },
         )
     }
 }
@@ -315,13 +343,12 @@ private fun dateToStringFormat(dateInMillis: Long) = Instant
 
 @Composable
 private fun LoaderNumberRow(
-    lifterNumber: String, onValueChanged: (text: String) -> Unit,
+    lifterNumber: TextFieldValue, onValueChanged: (text: String) -> Unit,
     focus: FocusRequester
 ) {
     var isFnType by remember { mutableStateOf(false) }
     var isStringType by remember { mutableStateOf(false) }
     var isError by remember { mutableStateOf(false) }
-    var textState by remember { mutableStateOf(TextFieldValue(lifterNumber)) }
     LaunchedEffect(Unit) {
         focus.requestFocus()
     }
@@ -329,11 +356,10 @@ private fun LoaderNumberRow(
         modifier = Modifier
             .fillMaxWidth()
             .focusRequester(focus),
-        value = textState.copy(selection = TextRange(textState.text.length)),
+        value = lifterNumber,
         onValueChange = {
             onValueChanged(it.text)
             isError = isFnType && (it.text.length < 6 || it.text.length > 8)
-            textState = it
         },
         shape = RoundedCornerShape(5.dp),
         maxLines = 1,
@@ -345,8 +371,8 @@ private fun LoaderNumberRow(
         supportingText = {
             if (isError) {
                 Text(
-                    text = if (lifterNumber.length < 6) stringResource(R.string.min_length_8_symbols)
-                    else if (lifterNumber.length > 8) stringResource(R.string.length_should_be_8_symbols)
+                    text = if (lifterNumber.text.length < 6) stringResource(R.string.min_length_8_symbols)
+                    else if (lifterNumber.text.length > 8) stringResource(R.string.length_should_be_8_symbols)
                     else ""
                 )
             }
@@ -375,18 +401,10 @@ private fun LoaderNumberRow(
                                 .clickable {
                                     if (!isFnType) {
                                         isFnType = true
-                                        onValueChanged("FN$lifterNumber")
-                                        textState = TextFieldValue(
-                                            text = "FN$lifterNumber",
-                                            selection = TextRange(textState.selection.end)
-                                        )
+                                        onValueChanged("FN${lifterNumber.text}")
                                     } else {
                                         isFnType = false
-                                        onValueChanged(lifterNumber.removePrefix("FN"))
-                                        textState = TextFieldValue(
-                                            text = lifterNumber.removePrefix("FN"),
-                                            selection = TextRange(textState.selection.end)
-                                        )
+                                        onValueChanged(lifterNumber.text.removePrefix("FN"))
                                     }
                                 },
                             painter = painterResource(R.drawable.ic_fn_button),

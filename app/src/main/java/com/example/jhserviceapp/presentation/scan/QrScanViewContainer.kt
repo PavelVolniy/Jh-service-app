@@ -9,6 +9,7 @@ fun QrScanViewContainer(
 //    onSuccessScan: @Composable () -> Unit,
     onClickGalleryButton: () -> Unit = {},
     onClickDocumentButton: () -> Unit = {},
+    onSuccessResult: (result: String) -> Unit = {}
 ) {
 //    val state = qrScanViewModel.scanState.collectAsState()
 //    if (state.value is QrScanState.Success) onSuccessScan()
@@ -20,6 +21,7 @@ fun QrScanViewContainer(
 //            qrScanViewModel.restartState()
         },
         isDetectedQrCode = { row ->
+            onSuccessResult(row)
 //            qrScanViewModel.checkQrCode(row)
         },
         onClickGalleryButton = onClickGalleryButton,

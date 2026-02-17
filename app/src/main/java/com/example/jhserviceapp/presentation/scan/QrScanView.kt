@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -33,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.jhserviceapp.R
+import com.example.jhserviceapp.presentation.util.NumberUtil
 import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
@@ -61,6 +63,7 @@ fun QrScanView(
     var isShowDialog by remember { mutableStateOf(false) }
 
     var selectImage by remember { mutableStateOf<Uri?>(null) }
+
 //    val galleryLauncher =
 //        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
 //            selectImage = it
@@ -124,8 +127,12 @@ fun QrScanView(
                     }
             } else {
                 CameraView(result = { row ->
-                    isDetectedQrCode(row)
-                    qrScanHelpInfo = row
+                    val list = row.replace('\n', ' ').split(' ')
+                    list.forEach {
+                        if (NumberUtil.checkNumber(it)) {
+                            isDetectedQrCode(it)
+                        }
+                    }
                 }, torch = torch)
             }
 
@@ -142,8 +149,6 @@ fun QrScanView(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-
-
                     Text(
                         text = "Scan",
                         style = TextStyle(
@@ -233,6 +238,8 @@ fun QrScanView(
 
                 }
             }
+
+
         }
     }
 }

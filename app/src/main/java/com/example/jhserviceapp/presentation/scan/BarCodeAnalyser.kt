@@ -127,14 +127,12 @@ class BarCodeAnalyser(
             */
 
             // Вариант 3: Только строки без элементов (раскомментируйте, если нужно):
-            /*
-            visionText.textBlocks.forEach { block ->
-                block.lines.forEach { line ->
-                    append(line.text)
-                    append("\n")
-                }
-            }
-            */
+//            visionText.textBlocks.forEach { block ->
+//                block.lines.forEach { line ->
+//                    append(line.text)
+//                    append("\n")
+//                }
+//            }
         }.trim()
     }
 }

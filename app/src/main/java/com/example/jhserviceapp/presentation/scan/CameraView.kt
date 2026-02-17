@@ -18,9 +18,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
+import androidx.lifecycle.compose.LocalLifecycleOwner
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -138,18 +138,14 @@ private fun initializeCamera(
             val preview = Preview.Builder()
                 .build()
                 .also {
-                    it.setSurfaceProvider(previewView.surfaceProvider)
+                    it.surfaceProvider = previewView.surfaceProvider
                 }
 
             // Настройка анализатора изображений для QR/баркодов
             // Примечание: BarCodeAnalyser должен быть реализован с использованием
             // ML Kit или другой библиотеки для распознавания баркодов
             val barcodeAnalyser = BarCodeAnalyser { barcodes ->
-                barcodes.forEach { barcode ->
-                    barcode.let { barcodeValue ->
-                        onResult(barcodeValue.toString())
-                    }
-                }
+                onResult(barcodes)
             }
 
             val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
