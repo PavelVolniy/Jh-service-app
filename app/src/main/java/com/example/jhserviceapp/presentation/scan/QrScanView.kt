@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -34,10 +33,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.jhserviceapp.R
+import com.example.jhserviceapp.presentation.util.AnalyserType
 import com.example.jhserviceapp.presentation.util.NumberUtil
-import com.google.mlkit.vision.barcode.Barcode
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
 import com.google.mlkit.vision.common.InputImage
 
 @Preview(showBackground = true, apiLevel = 34)
@@ -49,11 +49,8 @@ fun PreviewQrScanView() {
 @Composable
 fun QrScanView(
     scanState: QrScanState = QrScanState.Wait,
-    onClickManuallyButton: () -> Unit = {},
-    onClickRestartButton: () -> Unit = {},
     isDetectedQrCode: (row: String) -> Unit = {},
-    onClickGalleryButton: () -> Unit = {},
-    onClickDocumentButton: () -> Unit = {},
+    analyserType: AnalyserType = AnalyserType.TEXT
 ) {
     var torch by remember { mutableStateOf(false) }
     var isVisibleButtons by remember { mutableStateOf(false) }
@@ -63,11 +60,6 @@ fun QrScanView(
     var isShowDialog by remember { mutableStateOf(false) }
 
     var selectImage by remember { mutableStateOf<Uri?>(null) }
-
-//    val galleryLauncher =
-//        rememberLauncherForActivityResult(ActivityResultContracts.GetContent()) {
-//            selectImage = it
-//        }
 
     when (scanState) {
         QrScanState.Wait -> {
@@ -126,26 +118,28 @@ fun QrScanView(
                         }
                     }
             } else {
-                CameraView(result = { row ->
-                    val list = row.replace('\n', ' ').split(' ')
-                    list.forEach {
-                        if (NumberUtil.checkNumber(it)) {
-                            isDetectedQrCode(it)
+                CameraView(
+                    result = { row ->
+                        val list = row.replace('\n', ' ').split(' ')
+                        list.forEach {
+                            if (NumberUtil.checkNumber(it)) {
+                                isDetectedQrCode(it)
+                            }
                         }
-                    }
-                }, torch = torch)
+                    },
+                    torch = torch,
+                    analyserType = analyserType
+                )
             }
 
             Column(
                 modifier = Modifier
                     .fillMaxSize(),
-//                    .background(ColorBackGroundCamera),
                 horizontalAlignment = Alignment.CenterHorizontally,
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth(),
-//                        .background(ColorBackGroundCamera),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
@@ -184,7 +178,6 @@ fun QrScanView(
                     Text(
                         text = "",
                         modifier = Modifier
-//                            .background(ColorBackGroundCamera)
                             .fillMaxHeight()
                             .weight(0.5f)
                     )
@@ -192,14 +185,12 @@ fun QrScanView(
                     Text(
                         text = "",
                         modifier = Modifier
-//                            .background(ColorBackGroundCamera)
                             .fillMaxHeight()
                             .weight(0.5f)
                     )
                 }
                 Box(
                     modifier = Modifier
-//                        .background(ColorBackGroundCamera)
                         .fillMaxWidth()
                 ) {
                     Surface(
@@ -211,19 +202,10 @@ fun QrScanView(
                     ) {
                         Row(
                             modifier = Modifier
-//                                .background(ColorMain)
                                 .padding(horizontal = 10.dp),
                             horizontalArrangement = Arrangement.Center,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-//                            IconButton(onClick = {
-//                                isShowDialog = true
-//                            }) {
-//                                Icon(
-//                                    painter = painterResource(R.drawable.ic_picture_home_page),
-//                                    contentDescription = null
-//                                )
-//                            }
                             IconButton(onClick = {
                                 torch = !torch
                             }) {

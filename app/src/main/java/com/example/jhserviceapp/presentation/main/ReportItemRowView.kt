@@ -14,6 +14,8 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AccessTime
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -106,10 +108,18 @@ fun ReportItemRowView(
                     text = "№ ${report.numberLoader}",
                     color = colorTitle,
                 )
-                Text(
-                    text = "H ${report.hours}",
-                    color = colorTitle
-                )
+                Row(verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(5.dp)) {
+                    Icon(
+                        imageVector = Icons.Default.AccessTime,
+                        tint = colorResource(R.color.jhGrayDark),
+                        contentDescription = null
+                    )
+                    Text(
+                        text = report.hours.toString(),
+                        color = colorTitle
+                    )
+                }
             }
             Row(
                 modifier = Modifier

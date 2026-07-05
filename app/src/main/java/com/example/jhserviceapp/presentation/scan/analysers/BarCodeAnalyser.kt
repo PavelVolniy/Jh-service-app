@@ -1,29 +1,30 @@
-package com.example.jhserviceapp.presentation.scan
+package com.example.jhserviceapp.presentation.scan.analysers
 
 import android.util.Log
 import androidx.annotation.OptIn
 import androidx.camera.core.ExperimentalGetImage
 import androidx.camera.core.ImageAnalysis
 import androidx.camera.core.ImageProxy
+import com.google.mlkit.vision.barcode.BarcodeScannerOptions
+import com.google.mlkit.vision.barcode.BarcodeScanning
+import com.google.mlkit.vision.barcode.common.Barcode
+import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BarCodeAnalyser(
-    private val onTextRecognized: (String) -> Unit
+    private val onBarcodeDetected: (barcodes: String) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
-    // Создаем TextRecognizer один раз и переиспользуем
-    private val textRecognizer = run {
-        try {
-//             Используйте эту версию для английского и базовых языков
-            com.google.mlkit.vision.text.TextRecognition.getClient(
-                com.google.mlkit.vision.text.latin.TextRecognizerOptions.Builder().build()
-            )
+    private val oprions = BarcodeScannerOptions.Builder()
+        .setBarcodeFormats(
+            Barcode.FORMAT_ALL_FORMATS
+        )
+        .build()
 
-            // Или используйте эту версию для поддержки русского и других языков:
-//            com.google.mlkit.vision.text.TextRecognition.getClient(
-//                com.google.mlkit.vision.text.latin.TextRecognizerOptions.Builder()
-//                    .build()
-//            )
+    // Создаем TextRecognizer один раз и переиспользуем
+    private val barcodeScanner = run {
+        try {
+            BarcodeScanning.getClient(oprions)
         } catch (e: Exception) {
             Log.e("BarCodeAnalyser", "Failed to initialize TextRecognizer: ${e.message}", e)
             null
@@ -36,7 +37,7 @@ class BarCodeAnalyser(
     @OptIn(ExperimentalGetImage::class)
     override fun analyze(imageProxy: ImageProxy) {
         // Пропускаем кадры, если предыдущий еще обрабатывается
-        if (isProcessing.get() || textRecognizer == null) {
+        if (isProcessing.get() || barcodeScanner == null) {
             imageProxy.close()
             return
         }
@@ -49,7 +50,7 @@ class BarCodeAnalyser(
 
         // Создаем InputImage из MediaImage с учетом поворота
         val image = try {
-            com.google.mlkit.vision.common.InputImage.fromMediaImage(
+            InputImage.fromMediaImage(
                 mediaImage,
                 imageProxy.imageInfo.rotationDegrees
             )
@@ -66,15 +67,19 @@ class BarCodeAnalyser(
         }
 
         // Обрабатываем изображение
-        textRecognizer.process(image)
-            .addOnSuccessListener { visionText ->
+        barcodeScanner.process(image)
+            .addOnSuccessListener { barcodes ->
                 try {
                     // Извлекаем весь распознанный текст
-                    val recognizedText = extractText(visionText)
+                    val list = mutableListOf<String>()
+                    for (barcode in barcodes) {
+                        list.add(barcode.rawValue ?: "")
+                    }
+                    val recognizedText = list.toString().trim('[', ']')
 
                     // Вызываем callback только если текст не пустой
-                    if (recognizedText.isNotBlank()) {
-                        onTextRecognized(recognizedText)
+                    if (recognizedText.isNotBlank() && recognizedText.length > 1) {
+                        onBarcodeDetected(recognizedText)
                     }
                 } catch (e: Exception) {
                     Log.e("BarCodeAnalyser", "Error processing recognized text: ${e.message}", e)
@@ -96,43 +101,5 @@ class BarCodeAnalyser(
                 // Убеждаемся, что флаг сброшен даже при отмене
                 isProcessing.set(false)
             }
-    }
-
-    /**
-     * Извлекает текст из результата распознавания ML Kit
-     *
-     * Можно настроить различные стратегии извлечения:
-     * - Весь текст одной строкой
-     * - Только блоки текста
-     * - Только строки
-     * - С сохранением структуры (абзацы, строки)
-     */
-    private fun extractText(visionText: com.google.mlkit.vision.text.Text): String {
-        return buildString {
-            // Вариант 1: Весь текст одной строкой (по умолчанию)
-            append(visionText.text)
-
-            // Вариант 2: Текст с сохранением структуры (раскомментируйте, если нужно):
-            /*
-            visionText.textBlocks.forEach { block ->
-                block.lines.forEach { line ->
-                    line.elements.forEach { element ->
-                        append(element.text)
-                        append(" ")
-                    }
-                    append("\n")
-                }
-                append("\n")
-            }
-            */
-
-            // Вариант 3: Только строки без элементов (раскомментируйте, если нужно):
-//            visionText.textBlocks.forEach { block ->
-//                block.lines.forEach { line ->
-//                    append(line.text)
-//                    append("\n")
-//                }
-//            }
-        }.trim()
     }
 }

@@ -47,7 +47,9 @@
     <string name="article_number_field_hint_settings_page">артикул</string>
     <string name="min_length_8_symbols">Минимальная длина 8 символов</string>
     <string name="length_should_be_8_symbols">Должно быть 8 символов</string>
-    <string name="scan_button_text">Сканировать</string>
+    <string name="scan_button_text">Сканировать номер</string>
+    <string name="scan_barcode_button">сканировать код</string>
+    <string name="waybill_title">Путевой лист</string>
 
     <array name="typesOfOperations">
         <item>ремонт</item>

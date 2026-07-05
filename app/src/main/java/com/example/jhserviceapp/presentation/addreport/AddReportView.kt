@@ -61,6 +61,7 @@ import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.scan.QrScanViewContainer
+import com.example.jhserviceapp.presentation.util.AnalyserType
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.time.Instant
@@ -83,6 +84,7 @@ fun AddReportView(
     onClickCancel: () -> Unit
 ) {
     val scope = rememberCoroutineScope()
+    val sheetState = rememberModalBottomSheetState(true)
     var lifterNumber by remember {
         mutableStateOf(
             reportWithArticle?.report?.numberLoader ?: ""
@@ -102,7 +104,6 @@ fun AddReportView(
         )
     }
     var articleList by remember { mutableStateOf<List<ArticleWithCount>>(emptyList()) }
-    var isShowScan by remember { mutableStateOf(false) }
     val focus = remember { FocusRequester() }
     Surface(color = colorResource(R.color.jhGrayLight)) {
         Column(
@@ -163,29 +164,32 @@ fun AddReportView(
                         && description.isNotEmpty()
             )
             TextButton(
-                modifier = Modifier.width(100.dp),
                 shape = RoundedCornerShape(10.dp),
                 border = BorderStroke(1.5.dp, color = colorResource(R.color.jhGrayMedium)),
-                onClick = { isShowScan = !isShowScan }) {
+                onClick = { scope.launch { sheetState.show() } }) {
                 Text(
                     text = stringResource(R.string.scan_button_text),
                     color = colorResource(R.color.jhGrayDark)
                 )
             }
-            if (isShowScan) {
-                val state = rememberModalBottomSheetState(true)
+
+            if (sheetState.isVisible) {
+
                 ModalBottomSheet(
-                    sheetState = state,
-                    onDismissRequest = { isShowScan = false }
+                    sheetState = sheetState,
+                    onDismissRequest = { scope.launch { sheetState.hide() } }
                 ) {
-                    QrScanViewContainer(onSuccessResult = {
-                        scope.launch {
+                    QrScanViewContainer(
+                        onSuccessResult = {
+                            scope.launch {
                             lifterNumber = it
-                            delay(500)
-                            state.hide()
-                            isShowScan = false
-                        }
-                    })
+                                description = it
+                                delay(500)
+                                sheetState.hide()
+                            }
+                        },
+                        analyserType = AnalyserType.TEXT
+                    )
                 }
             }
         }
@@ -304,7 +308,8 @@ private fun DateHoursRow(
             }
         }
         if (isShowDatePicker) {
-            DatePickerDialog(onDismissRequest = { isShowDatePicker = false },
+            DatePickerDialog(
+                onDismissRequest = { isShowDatePicker = false },
                 confirmButton = {
                     TextButton(onClick = {
                         selectedDate(datePickerState.selectedDateMillis ?: 0)

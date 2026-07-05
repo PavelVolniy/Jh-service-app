@@ -36,6 +36,11 @@
             app:destination="@id/settings_page"
             app:enterAnim="@anim/enter_slide_left"
             app:exitAnim="@anim/exit_slide_left" />
+        <action
+            android:id="@+id/fromMainPageToWaybill"
+            app:destination="@+id/waybill_page"
+            app:enterAnim="@anim/enter_slide_left"
+            app:exitAnim="@anim/exit_slide_left" />
     </fragment>
 
     <fragment
@@ -61,6 +66,16 @@
         <action
             android:id="@+id/fromSettingPageToMain_page"
             app:destination="@id/main_page"
+            app:enterAnim="@anim/enter_slide_right"
+            app:exitAnim="@anim/exit_slide_right" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/waybill_page"
+        android:name="com.example.jhserviceapp.presentation.waibill.WaybillFragment">
+        <action
+            android:id="@+id/fromWaybillToMainPage"
+            app:destination="@+id/main_page"
             app:enterAnim="@anim/enter_slide_right"
             app:exitAnim="@anim/exit_slide_right" />
     </fragment>

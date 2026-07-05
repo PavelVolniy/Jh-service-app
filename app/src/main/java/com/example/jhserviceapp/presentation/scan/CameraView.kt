@@ -21,6 +21,9 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.content.ContextCompat
 import androidx.lifecycle.compose.LocalLifecycleOwner
+import com.example.jhserviceapp.presentation.scan.analysers.BarCodeAnalyser
+import com.example.jhserviceapp.presentation.scan.analysers.TextAnalyser
+import com.example.jhserviceapp.presentation.util.AnalyserType
 import com.google.common.util.concurrent.ListenableFuture
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -29,7 +32,8 @@ import java.util.concurrent.Executors
 fun CameraView(
     modifier: Modifier = Modifier,
     result: (row: String) -> Unit,
-    torch: Boolean = true
+    torch: Boolean = false,
+    analyserType: AnalyserType
 ) {
     val context = LocalContext.current
     val lifecycleOwner = LocalLifecycleOwner.current
@@ -107,7 +111,8 @@ fun CameraView(
                             "Camera initialization error: ${error.localizedMessage}",
                             error
                         )
-                    }
+                    },
+                    analyserType = analyserType
                 )
             }
         }
@@ -121,7 +126,8 @@ private fun initializeCamera(
     cameraExecutor: ExecutorService,
     onCameraInitialized: (ProcessCameraProvider, Camera) -> Unit,
     onResult: (String) -> Unit,
-    onError: (Exception) -> Unit
+    onError: (Exception) -> Unit,
+    analyserType: AnalyserType
 ) {
     val cameraSelector: CameraSelector = CameraSelector.Builder()
         .requireLensFacing(CameraSelector.LENS_FACING_BACK)
@@ -142,10 +148,16 @@ private fun initializeCamera(
                 }
 
             // Настройка анализатора изображений для QR/баркодов
-            // Примечание: BarCodeAnalyser должен быть реализован с использованием
-            // ML Kit или другой библиотеки для распознавания баркодов
-            val barcodeAnalyser = BarCodeAnalyser { barcodes ->
-                onResult(barcodes)
+            val barcodeAnalyser = when(analyserType){
+                AnalyserType.BAR_CDD -> {
+                    BarCodeAnalyser { barcodes ->
+                        onResult(barcodes)
+                    }
+                }
+                AnalyserType.TEXT -> TextAnalyser{text->
+                    onResult(text)
+                }
+//                AnalyserType.BAR_COD_DATA -> {}
             }
 
             val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
