@@ -34,7 +34,6 @@ import androidx.compose.ui.unit.sp
 import coil.compose.AsyncImage
 import com.example.jhserviceapp.R
 import com.example.jhserviceapp.presentation.util.AnalyserType
-import com.example.jhserviceapp.presentation.util.NumberUtil
 import com.google.mlkit.vision.barcode.BarcodeScannerOptions
 import com.google.mlkit.vision.barcode.BarcodeScanning
 import com.google.mlkit.vision.barcode.common.Barcode
@@ -42,14 +41,14 @@ import com.google.mlkit.vision.common.InputImage
 
 @Preview(showBackground = true, apiLevel = 34)
 @Composable
-fun PreviewQrScanView() {
+private fun PreviewQrScanView() {
     QrScanView()
 }
 
 @Composable
 fun QrScanView(
     scanState: QrScanState = QrScanState.Wait,
-    isDetectedQrCode: (row: String) -> Unit = {},
+    isDetectedData: (rows: List<String>) -> Unit = {},
     analyserType: AnalyserType = AnalyserType.TEXT
 ) {
     var torch by remember { mutableStateOf(false) }
@@ -113,19 +112,14 @@ fun QrScanView(
                         .build()
                 ).process(InputImage.fromFilePath(LocalContext.current, selectImage!!))
                     .addOnSuccessListener { barcodes ->
-                        barcodes.firstOrNull()?.let {
-                            isDetectedQrCode(it.rawValue ?: "")
-                        }
+                        val list = mutableListOf<String>()
+                        barcodes.forEach { list.add(it.rawValue ?: "") }
+                        if (list.isNotEmpty()) isDetectedData(list)
                     }
             } else {
                 CameraView(
-                    result = { row ->
-                        val list = row.replace('\n', ' ').split(' ')
-                        list.forEach {
-                            if (NumberUtil.checkNumber(it)) {
-                                isDetectedQrCode(it)
-                            }
-                        }
+                    result = { listRow ->
+                        listRow.let { if (it.isNotEmpty()) isDetectedData(it) }
                     },
                     torch = torch,
                     analyserType = analyserType

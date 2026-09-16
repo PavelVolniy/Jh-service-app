@@ -31,7 +31,7 @@ import java.util.concurrent.Executors
 @Composable
 fun CameraView(
     modifier: Modifier = Modifier,
-    result: (row: String) -> Unit,
+    result: (rows: List<String>) -> Unit,
     torch: Boolean = false,
     analyserType: AnalyserType
 ) {
@@ -49,7 +49,7 @@ fun CameraView(
     }
 
     // Флаг для предотвращения множественных вызовов result для одного QR кода
-    var lastScannedCode by remember { mutableStateOf<String?>(null) }
+    var lastScannedCode by remember { mutableStateOf<List<String?>>(emptyList()) }
 
     // Очистка ресурсов при выходе из композиции
     DisposableEffect(Unit) {
@@ -125,7 +125,7 @@ private fun initializeCamera(
     previewView: PreviewView,
     cameraExecutor: ExecutorService,
     onCameraInitialized: (ProcessCameraProvider, Camera) -> Unit,
-    onResult: (String) -> Unit,
+    onResult: (List<String>) -> Unit,
     onError: (Exception) -> Unit,
     analyserType: AnalyserType
 ) {
@@ -148,23 +148,33 @@ private fun initializeCamera(
                 }
 
             // Настройка анализатора изображений для QR/баркодов
-            val barcodeAnalyser = when(analyserType){
+            val dataAnalyser = when (analyserType) {
                 AnalyserType.BAR_CDD -> {
                     BarCodeAnalyser { barcodes ->
                         onResult(barcodes)
                     }
                 }
-                AnalyserType.TEXT -> TextAnalyser{text->
+
+                AnalyserType.TEXT -> TextAnalyser { text ->
                     onResult(text)
                 }
-//                AnalyserType.BAR_COD_DATA -> {}
+
+                AnalyserType.BAR_COD_DATA -> {
+                    BarCodeAnalyser { barcodes ->
+                        onResult(barcodes)
+                    }
+                }
+
+                AnalyserType.LIFT_TRAC -> TextAnalyser { text ->
+                    onResult(text)
+                }
             }
 
             val imageAnalysis: ImageAnalysis = ImageAnalysis.Builder()
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
-                    it.setAnalyzer(cameraExecutor, barcodeAnalyser)
+                    it.setAnalyzer(cameraExecutor, dataAnalyser)
                 }
 
             // Отвязываем все предыдущие use cases перед привязкой новых

@@ -128,8 +128,8 @@ fun WayBillView(onclickBack: () -> Unit = {}) {
                         containerColor = colorResource(R.color.transparent)
                     ) {
                         CameraView(
-                            result = { text ->
-                                text.trim('{', '}').split(',').forEach {
+                            result = { listString ->
+                                listString.forEach {
                                     list.add(it.replace('\"', ' '))
                                 }
                                 scope.launch { state.hide() }

@@ -12,7 +12,7 @@ import com.google.mlkit.vision.common.InputImage
 import java.util.concurrent.atomic.AtomicBoolean
 
 class BarCodeAnalyser(
-    private val onBarcodeDetected: (barcodes: String) -> Unit,
+    private val onBarcodeDetected: (barcodes: List<String>) -> Unit,
 ) : ImageAnalysis.Analyzer {
 
     private val oprions = BarcodeScannerOptions.Builder()
@@ -71,15 +71,10 @@ class BarCodeAnalyser(
             .addOnSuccessListener { barcodes ->
                 try {
                     // Извлекаем весь распознанный текст
-                    val list = mutableListOf<String>()
-                    for (barcode in barcodes) {
-                        list.add(barcode.rawValue ?: "")
-                    }
-                    val recognizedText = list.toString().trim('[', ']')
+                    val list = barcodes.map { it.rawValue ?: "" }
 
-                    // Вызываем callback только если текст не пустой
-                    if (recognizedText.isNotBlank() && recognizedText.length > 1) {
-                        onBarcodeDetected(recognizedText)
+                    if (list.isNotEmpty()) {
+                        onBarcodeDetected(list)
                     }
                 } catch (e: Exception) {
                     Log.e("BarCodeAnalyser", "Error processing recognized text: ${e.message}", e)

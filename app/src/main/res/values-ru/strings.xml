@@ -50,6 +50,7 @@
     <string name="scan_button_text">Сканировать номер</string>
     <string name="scan_barcode_button">сканировать код</string>
     <string name="waybill_title">Путевой лист</string>
+    <string name="selected_button_text">Выбрать</string>
 
     <array name="typesOfOperations">
         <item>ремонт</item>

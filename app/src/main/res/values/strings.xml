@@ -50,6 +50,7 @@
     <string name="scan_button_text">Scan number</string>
     <string name="scan_barcode_button">scan BarCode</string>
     <string name="waybill_title">Waybill</string>
+    <string name="selected_button_text">Select</string>
 
     <array name="typesOfOperations">
         <item>repair</item>

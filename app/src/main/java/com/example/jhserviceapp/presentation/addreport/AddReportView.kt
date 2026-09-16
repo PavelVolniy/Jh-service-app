@@ -1,10 +1,11 @@
 package com.example.jhserviceapp.presentation.addreport
 
 import android.os.Build
+import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.compose.foundation.BorderStroke
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -19,6 +20,8 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AccessTime
+import androidx.compose.material.icons.filled.QrCode
+import androidx.compose.material.icons.filled.TextFields
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DatePicker
@@ -46,6 +49,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.dimensionResource
 import androidx.compose.ui.res.painterResource
@@ -60,9 +64,10 @@ import com.example.jhserviceapp.R
 import com.example.jhserviceapp.domain.entity.article.ArticleWithCount
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
-import com.example.jhserviceapp.presentation.scan.QrScanViewContainer
+import com.example.jhserviceapp.presentation.scan.QrScanState
+import com.example.jhserviceapp.presentation.scan.QrScanView
 import com.example.jhserviceapp.presentation.util.AnalyserType
-import kotlinx.coroutines.delay
+import com.example.jhserviceapp.presentation.util.NumberUtil
 import kotlinx.coroutines.launch
 import java.time.Instant
 import java.time.ZoneId
@@ -83,8 +88,7 @@ fun AddReportView(
     onClickSave: (reportWithArticle: ReportWithArticleAndCount) -> Unit,
     onClickCancel: () -> Unit
 ) {
-    val scope = rememberCoroutineScope()
-    val sheetState = rememberModalBottomSheetState(true)
+    val context = LocalContext.current
     var lifterNumber by remember {
         mutableStateOf(
             reportWithArticle?.report?.numberLoader ?: ""
@@ -97,7 +101,6 @@ fun AddReportView(
     }
     var hours by remember { mutableStateOf(reportWithArticle?.report?.hours?.toString() ?: "") }
     var description by remember { mutableStateOf(reportWithArticle?.report?.description ?: "") }
-//    val description = rememberTextFieldState()
     var internalComments by remember {
         mutableStateOf(
             reportWithArticle?.report?.internalComments ?: ""
@@ -105,6 +108,12 @@ fun AddReportView(
     }
     var articleList by remember { mutableStateOf<List<ArticleWithCount>>(emptyList()) }
     val focus = remember { FocusRequester() }
+    var typeScanner by remember { mutableStateOf(AnalyserType.TEXT) }
+    val scannerDialogState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+    val scope = rememberCoroutineScope()
+    var viewScanState by remember { mutableStateOf<QrScanState>(QrScanState.Scanning) }
+    var scannerList by remember { mutableStateOf<Set<String>>(emptySet()) }
+
     Surface(color = colorResource(R.color.jhGrayLight)) {
         Column(
             modifier = Modifier
@@ -119,7 +128,13 @@ fun AddReportView(
                     selection = if (lifterNumber.isNotEmpty()) TextRange(lifterNumber.length) else TextRange.Zero
                 ),
                 onValueChanged = { lifterNumber = it },
-                focus = focus
+                focus = focus,
+                showCameraDialog = {
+                    scope.launch {
+                        typeScanner = AnalyserType.LIFT_TRAC
+                        scannerDialogState.show()
+                    }
+                }
             )
             DateHoursRow(
                 hours = hours,
@@ -132,15 +147,32 @@ fun AddReportView(
                 label = stringResource(R.string.description_text),
                 text = description,
                 changeText = { description = it },
+                onClickScannerText = {
+                    scope.launch {
+                        typeScanner = AnalyserType.TEXT
+                        scannerDialogState.show()
+                    }
+                }
             )
             DescriptionBox(
                 label = stringResource(R.string.internal_comments_hint),
                 text = internalComments,
                 changeText = { internalComments = it },
+                onClickScannerBarCode = {
+                    scope.launch {
+                        typeScanner = AnalyserType.BAR_CDD
+                        scannerDialogState.show()
+                    }
+                },
+                onClickScannerText = {
+                    Toast.makeText(context, "В разработке", Toast.LENGTH_SHORT).show()
+                },
+                barcodeFlag = true
             )
             ArticleBox(articleList)
             ButtonsRow(
-                onClickCancel = onClickCancel, onClickSave = {
+                onClickCancel = onClickCancel,
+                onClickSave = {
                     onClickSave(
                         ReportWithArticleAndCount(
                             ReportDTO(
@@ -163,36 +195,55 @@ fun AddReportView(
                         && hours.isNotEmpty()
                         && description.isNotEmpty()
             )
-            TextButton(
-                shape = RoundedCornerShape(10.dp),
-                border = BorderStroke(1.5.dp, color = colorResource(R.color.jhGrayMedium)),
-                onClick = { scope.launch { sheetState.show() } }) {
-                Text(
-                    text = stringResource(R.string.scan_button_text),
-                    color = colorResource(R.color.jhGrayDark)
+        }
+
+        if (scannerDialogState.isVisible) {
+            ModalBottomSheet(
+                containerColor = colorResource(R.color.transparent),
+                sheetState = scannerDialogState,
+                onDismissRequest = { scope.launch { scannerDialogState.hide() } }
+            ) {
+                QrScanView(
+                    scanState = viewScanState,
+                    isDetectedData = { rows ->
+                        scope.launch {
+                            when (typeScanner) {
+                                AnalyserType.BAR_CDD -> {
+                                    internalComments += "${rows.first()}\n"
+                                    scannerDialogState.hide()
+                                }
+
+                                AnalyserType.TEXT -> {
+                                    if (rows.isNotEmpty()) {
+                                        scannerList = rows.filter { it.length > 4 }.toSet()
+                                        description += rows.toString().trim('[', ']')
+                                    }
+                                    scannerDialogState.hide()
+                                }
+
+                                AnalyserType.BAR_COD_DATA -> {
+                                    internalComments += "${rows.first()}\n"
+                                    scannerDialogState.hide()
+                                }
+
+                                AnalyserType.LIFT_TRAC -> {
+                                    for (item in rows) {
+                                        if (NumberUtil.checkNumber(item)) {
+                                            lifterNumber = item
+                                            break
+                                        }
+                                    }
+                                    if (lifterNumber.isNotEmpty()) scannerDialogState.hide()
+                                }
+                            }
+                        }
+                    },
+                    analyserType = typeScanner
                 )
             }
 
-            if (sheetState.isVisible) {
-
-                ModalBottomSheet(
-                    sheetState = sheetState,
-                    onDismissRequest = { scope.launch { sheetState.hide() } }
-                ) {
-                    QrScanViewContainer(
-                        onSuccessResult = {
-                            scope.launch {
-                            lifterNumber = it
-                                description = it
-                                delay(500)
-                                sheetState.hide()
-                            }
-                        },
-                        analyserType = AnalyserType.TEXT
-                    )
-                }
-            }
         }
+
     }
 }
 
@@ -247,6 +298,9 @@ private fun DescriptionBox(
     label: String,
     text: String,
     changeText: (description: String) -> Unit = {},
+    onClickScannerText: () -> Unit = {},
+    onClickScannerBarCode: () -> Unit = {},
+    barcodeFlag: Boolean = false
 ) {
     OutlinedTextField(
         modifier = Modifier
@@ -261,7 +315,55 @@ private fun DescriptionBox(
             autoCorrectEnabled = true,
             keyboardType = KeyboardType.Text,
             capitalization = KeyboardCapitalization.Sentences
-        )
+        ),
+        trailingIcon = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(onClick = { onClickScannerText() }) {
+                    Box {
+                        Icon(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .align(Alignment.Center),
+                            painter = painterResource(R.drawable.qr_aim),
+                            contentDescription = "textScanner",
+                            tint = colorResource(R.color.black)
+                        )
+                        Icon(
+                            modifier = Modifier.align(Alignment.Center),
+                            imageVector = Icons.Default.TextFields,
+                            contentDescription = "textScanner",
+                            tint = colorResource(R.color.jhGrayDark)
+                        )
+
+                    }
+                }
+                if (barcodeFlag) {
+                    IconButton(onClick = { onClickScannerBarCode() }) {
+                        Box {
+                            Icon(
+                                modifier = Modifier
+                                    .size(30.dp)
+                                    .align(Alignment.Center),
+                                painter = painterResource(R.drawable.qr_aim),
+                                contentDescription = "textScanner",
+                                tint = colorResource(R.color.black)
+                            )
+                            Icon(
+                                modifier = Modifier.align(Alignment.Center),
+                                imageVector = Icons.Default.QrCode,
+                                contentDescription = "textScanner",
+                                tint = colorResource(R.color.jhGrayDark)
+                            )
+
+                        }
+                    }
+                }
+            }
+
+        }
     )
 }
 
@@ -348,8 +450,10 @@ private fun dateToStringFormat(dateInMillis: Long) = Instant
 
 @Composable
 private fun LoaderNumberRow(
-    lifterNumber: TextFieldValue, onValueChanged: (text: String) -> Unit,
-    focus: FocusRequester
+    lifterNumber: TextFieldValue,
+    onValueChanged: (text: String) -> Unit,
+    focus: FocusRequester,
+    showCameraDialog: () -> Unit = {}
 ) {
     var isFnType by remember { mutableStateOf(false) }
     var isStringType by remember { mutableStateOf(false) }
@@ -390,8 +494,42 @@ private fun LoaderNumberRow(
             )
         },
         trailingIcon = {
-            Row {
-                IconButton(onClick = {}) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.End
+            ) {
+                IconButton(
+                    shape = RoundedCornerShape(10.dp),
+                    onClick = { showCameraDialog() }) {
+                    Box {
+                        Icon(
+                            modifier = Modifier
+                                .size(30.dp)
+                                .align(Alignment.Center),
+                            painter = painterResource(R.drawable.qr_aim),
+                            contentDescription = "textScanner",
+                            tint = colorResource(R.color.black)
+                        )
+                        Icon(
+                            modifier = Modifier
+                                .padding(5.dp)
+                                .align(Alignment.Center),
+                            imageVector = Icons.Default.TextFields,
+                            contentDescription = "qrIcon",
+                            tint = colorResource(R.color.jhGrayDark)
+                        )
+                    }
+                }
+
+                IconButton(onClick = {
+                    if (!isFnType) {
+                        isFnType = true
+                        onValueChanged("FN${lifterNumber.text}")
+                    } else {
+                        isFnType = false
+                        onValueChanged(lifterNumber.text.removePrefix("FN"))
+                    }
+                }) {
                     Surface(
                         color = colorResource(R.color.jhGrayLight),
                         shape = RoundedCornerShape(5.dp),
@@ -402,22 +540,13 @@ private fun LoaderNumberRow(
                     ) {
                         Icon(
                             modifier = Modifier
-                                .size(31.dp)
-                                .clickable {
-                                    if (!isFnType) {
-                                        isFnType = true
-                                        onValueChanged("FN${lifterNumber.text}")
-                                    } else {
-                                        isFnType = false
-                                        onValueChanged(lifterNumber.text.removePrefix("FN"))
-                                    }
-                                },
+                                .size(31.dp),
                             painter = painterResource(R.drawable.ic_fn_button),
                             contentDescription = null
                         )
                     }
                 }
-                IconButton(onClick = {}) {
+                IconButton(onClick = { isStringType = !isStringType }) {
                     Surface(
                         color = colorResource(R.color.jhGrayLight),
                         shape = RoundedCornerShape(5.dp),
@@ -428,8 +557,7 @@ private fun LoaderNumberRow(
                     ) {
                         Icon(
                             modifier = Modifier
-                                .padding(3.dp)
-                                .clickable { isStringType = !isStringType },
+                                .padding(3.dp),
                             painter = painterResource(R.drawable.ic_list_button),
                             contentDescription = null
                         )
