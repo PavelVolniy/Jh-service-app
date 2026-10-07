@@ -72,13 +72,14 @@ class MainFragment : Fragment() {
         val systemService =
             requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val stringItem = StringBuilder()
-        stringItem.append("date: ${FormatDateUtil.getDateToStringDDMMYY(onSharedItem.report.date)}\n")
-        stringItem.append("loader: ${onSharedItem.report.numberLoader} hours: ${onSharedItem.report.hours}\n\n")
+        stringItem.append("дата: ${FormatDateUtil.getDateToStringYYYYMMDD(onSharedItem.report.date)}\n")
+        stringItem.append("погрузчик: ${onSharedItem.report.numberLoader} hours: ${onSharedItem.report.hours}\n\n")
         if (articleList.isNotEmpty()) {
-            stringItem.append("articles:\n$articleList\n")
+            stringItem.append("артикулы:\n$articleList\n")
         }
+        onSharedItem.report.placeOfOperations.let { if (it.isNotEmpty()) stringItem.append("Организация: $it\n") }
         stringItem.append("${onSharedItem.report.description}\n")
-        stringItem.append(onSharedItem.report.internalComments)
+        onSharedItem.report.internalComments.let { if (it.isNotEmpty()) stringItem.append(it) }
 
         val clip = ClipData.newPlainText("item", stringItem)
         systemService.setPrimaryClip(clip)
