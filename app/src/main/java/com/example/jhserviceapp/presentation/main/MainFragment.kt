@@ -73,7 +73,7 @@ class MainFragment : Fragment() {
             requireContext().getSystemService(Context.CLIPBOARD_SERVICE) as ClipboardManager
         val stringItem = StringBuilder()
         stringItem.append("дата: ${FormatDateUtil.getDateToStringYYYYMMDD(onSharedItem.report.date)}\n")
-        stringItem.append("погрузчик: ${onSharedItem.report.numberLoader} hours: ${onSharedItem.report.hours}\n\n")
+        stringItem.append("погрузчик: ${onSharedItem.report.numberLoader} часы: ${onSharedItem.report.hours}\n\n")
         if (articleList.isNotEmpty()) {
             stringItem.append("артикулы:\n$articleList\n")
         }

@@ -6,7 +6,6 @@ import androidx.room.Insert
 import androidx.room.OnConflictStrategy
 import androidx.room.Query
 import androidx.room.Transaction
-import com.example.jhserviceapp.domain.entity.Report
 import com.example.jhserviceapp.domain.entity.article.ArticleCount
 import com.example.jhserviceapp.domain.entity.article.ArticleCountCrossRef
 import com.example.jhserviceapp.domain.entity.article.ArticleDTO
@@ -55,6 +54,14 @@ interface ReportDao {
     @Transaction
     @Query("SELECT * FROM reports WHERE numberLoader LIKE :request ORDER BY date DESC")
     suspend fun getReportBySerialNumber(request: String): List<ReportWithArticleAndCount>
+
+    @Transaction
+    @Query("SELECT * FROM reports WHERE placeOfOperations LIKE :request ORDER BY date DESC")
+    suspend fun getReportByCompany(request: String): List<ReportWithArticleAndCount>
+
+    @Transaction
+    @Query("SELECT * FROM reports WHERE internalComments LIKE :request ORDER BY date DESC")
+    suspend fun getReportByInternalComments(request: String): List<ReportWithArticleAndCount>
 
     @Query("SELECT * FROM reports WHERE reportId = :id")
     suspend fun getReportById(id: Long): ReportWithArticleAndCount
