@@ -59,6 +59,7 @@ dependencies {
     androidTestImplementation(composeBom)
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
+    debugImplementation("com.squareup.leakcanary:leakcanary-android:2.14")
     implementation("androidx.lifecycle:lifecycle-viewmodel-compose:2.8.5")
     implementation("androidx.compose.material:material-icons-core:1.6.4")
     implementation("androidx.compose.material:material-icons-extended:1.6.4")

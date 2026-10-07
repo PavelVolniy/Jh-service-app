@@ -52,17 +52,14 @@ fun QrScanView(
     analyserType: AnalyserType = AnalyserType.TEXT
 ) {
     var torch by remember { mutableStateOf(false) }
-    var isVisibleButtons by remember { mutableStateOf(false) }
     var isVisibleHelpInfo by remember { mutableStateOf(true) }
     var qrScanStateText by remember { mutableStateOf("") }
     var qrScanHelpInfo by remember { mutableStateOf("") }
-    var isShowDialog by remember { mutableStateOf(false) }
 
     var selectImage by remember { mutableStateOf<Uri?>(null) }
 
     when (scanState) {
         QrScanState.Wait -> {
-            isVisibleButtons = false
             isVisibleHelpInfo = true
 //            qrScanStateText = stringResource(R.string.qr_code_with_description)
 //            qrScanHelpInfo = stringResource(R.string.qr_code_help_info)
@@ -71,11 +68,9 @@ fun QrScanView(
         QrScanState.Scanning -> {
 //            qrScanStateText = stringResource(R.string.scanning_process_qr_scan_text)
             isVisibleHelpInfo = false
-            isVisibleButtons = false
         }
 
         QrScanState.Error -> {
-            isVisibleButtons = true
             isVisibleHelpInfo = true
 //            qrScanStateText = stringResource(R.string.error_title_qr_code)
 //            qrScanHelpInfo = stringResource(R.string.error_description_qr_code)
@@ -84,7 +79,6 @@ fun QrScanView(
 
         QrScanState.Success -> {
             //TODO не обязательная часть кода
-            isVisibleButtons = false
             isVisibleHelpInfo = true
 //            qrScanStateText = stringResource(R.string.qr_code_with_description)
 //            qrScanHelpInfo = stringResource(R.string.qr_code_help_info)

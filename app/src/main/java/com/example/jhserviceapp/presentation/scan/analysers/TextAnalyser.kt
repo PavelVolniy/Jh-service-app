@@ -112,7 +112,7 @@ class TextAnalyser(
     private fun isSharpInRoi(
         imageProxy: ImageProxy,
         roiRect: Rect,
-        threshold: Float = 1500f // подберёшь экспериментально
+        threshold: Float
     ): Boolean {
         val image = imageProxy.image ?: return false
         if (image.format != ImageFormat.YUV_420_888) return false
