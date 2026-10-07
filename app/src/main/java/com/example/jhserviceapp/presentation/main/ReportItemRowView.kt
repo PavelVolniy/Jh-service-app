@@ -51,7 +51,7 @@ private fun PreviewReportItemRowView() {
             description = "some text some textsome textsome textsome textsome textsome textsome text",
             userName = "",
             userNumber = "",
-            placeOfOperations = "",
+            placeOfOperations = "Hren' Company",
             typeOfOperations = "",
             internalComments = "some internal comments"
         )
@@ -108,6 +108,7 @@ fun ReportItemRowView(
                     text = "№ ${report.numberLoader}",
                     color = colorTitle,
                 )
+
                 Row(verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                     Icon(
@@ -132,6 +133,8 @@ fun ReportItemRowView(
                     text = date,
                     color = colorTitle
                 )
+                Text(text = report.placeOfOperations,
+                    color = colorTitle)
             }
             Box(modifier = Modifier.fillMaxWidth()) {
                 Text(

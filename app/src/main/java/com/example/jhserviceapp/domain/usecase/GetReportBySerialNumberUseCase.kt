@@ -6,5 +6,5 @@ import javax.inject.Inject
 class GetReportBySerialNumberUseCase @Inject constructor(
     private val reportDao: ReportDao
 ) {
-    suspend operator fun invoke(request: String) = reportDao.getReportBySerialNumber(request)
+    suspend operator fun invoke(request: String) = reportDao.getReportBySerialNumber("%$request%")
 }

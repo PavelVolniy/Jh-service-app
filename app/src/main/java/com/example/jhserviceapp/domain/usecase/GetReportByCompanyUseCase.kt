@@ -3,8 +3,8 @@ package com.example.jhserviceapp.domain.usecase
 import com.example.jhserviceapp.data.ReportDao
 import javax.inject.Inject
 
-data class GetReportByDescriptionUseCase @Inject constructor(
+class GetReportByCompanyUseCase @Inject constructor(
     private val reportDao: ReportDao
 ) {
-    suspend operator fun invoke(request: String) = reportDao.getReportByDescription("%$request%")
+    suspend operator fun invoke(request: String) = reportDao.getReportByCompany("%$request%")
 }
