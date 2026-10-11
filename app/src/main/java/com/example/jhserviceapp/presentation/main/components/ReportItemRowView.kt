@@ -1,4 +1,4 @@
-package com.example.jhserviceapp.presentation.main
+package com.example.jhserviceapp.presentation.main.components
 
 import android.icu.util.Calendar
 import android.os.Build

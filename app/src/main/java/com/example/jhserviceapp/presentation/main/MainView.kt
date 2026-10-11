@@ -41,10 +41,13 @@ import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.Dialog
 import com.example.jhserviceapp.R
 import com.example.jhserviceapp.domain.entity.report.ReportDTO
 import com.example.jhserviceapp.domain.entity.report.ReportWithArticleAndCount
 import com.example.jhserviceapp.presentation.addreport.AddReportView
+import com.example.jhserviceapp.presentation.main.components.DeleteDialogView
+import com.example.jhserviceapp.presentation.main.components.ReportItemRowView
 import kotlinx.coroutines.launch
 
 
@@ -62,7 +65,7 @@ private fun PreviewMainView() {
                         description = "some text some textsome textsome textsome textsome textsome textsome text",
                         userName = "",
                         userNumber = "",
-                        placeOfOperations = "",
+                        placeOfOperations = "Test company",
                         typeOfOperations = "",
                         internalComments = ""
                     ), articles = emptyList()
@@ -100,6 +103,8 @@ fun MainView(
     var longClickItem by remember { mutableStateOf<ReportWithArticleAndCount?>(null) }
     val scope = rememberCoroutineScope()
     val bottomSheetState = rememberModalBottomSheetState(true)
+    val deleteDialogState = rememberModalBottomSheetState(true)
+    var deletedItem by remember { mutableStateOf<ReportWithArticleAndCount?>(null) }
 
     Scaffold(
         topBar = {
@@ -126,6 +131,36 @@ fun MainView(
                 }
             }
         },
+        bottomBar = {
+            if (deleteDialogState.isVisible) {
+                Dialog(
+                    onDismissRequest = {
+                        scope.launch {
+                            deleteDialogState.hide()
+                            deletedItem = null
+                        }
+                    },
+                ) {
+                    DeleteDialogView(
+                        onClickCancel = {
+                            scope.launch {
+                                deleteDialogState.hide()
+                                deletedItem = null
+                            }
+                        },
+                        onClickDelete = {
+                            scope.launch {
+                                deletedItem?.let {
+                                    onSwipeToDelete(it)
+                                }
+                                deleteDialogState.hide()
+                                deletedItem = null
+                            }
+                        }
+                    )
+                }
+            }
+        }
     ) {
         Surface(
             modifier = Modifier
@@ -178,9 +213,12 @@ fun MainView(
                     ) {
                         items(listReport) { item ->
                             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-
-                                SwipeableItem(onSwipeToDelete = { onSwipeToDelete(item) }) {
-                                    ReportItemRowView(report = item.report,
+                                SwipeableItem(onSwipeToDelete = {
+                                    deletedItem = item
+                                    scope.launch { deleteDialogState.show() }
+                                }) {
+                                    ReportItemRowView(
+                                        report = item.report,
                                         onClickShare = { onClickShare(item) },
                                         onLongClick = { longClickItem = item })
                                 }

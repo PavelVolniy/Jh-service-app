@@ -52,6 +52,9 @@
     <string name="waybill_title">Waybill</string>
     <string name="selected_button_text">Select</string>
     <string name="company_label_text">Company</string>
+    <string name="do_you_want_delete_text">Do you want delete?</string>
+    <string name="cancel_dialog_button">cancel</string>
+    <string name="delete_dialog_button">delete</string>
 
     <array name="typesOfOperations">
         <item>repair</item>

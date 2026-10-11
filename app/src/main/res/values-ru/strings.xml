@@ -52,6 +52,9 @@
     <string name="waybill_title">Путевой лист</string>
     <string name="selected_button_text">Выбрать</string>
     <string name="company_label_text">Компания/организация</string>
+    <string name="do_you_want_delete_text">Хотите удалить?</string>
+    <string name="cancel_dialog_button">отменить</string>
+    <string name="delete_dialog_button">удалить</string>
 
     <array name="typesOfOperations">
         <item>ремонт</item>
